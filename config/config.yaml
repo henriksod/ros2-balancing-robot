@@ -1,7 +1,7 @@
 remote:
   # # ~/.ssh/config example
   # Host robot
-  #   HostName 192.168.1.227 
+  #   HostName 192.168.1.227
   #   User pi
   #   Port 22
   #   IdentityFile ~/.ssh/id_rsa

@@ -18,15 +18,17 @@ import launch_ros.actions
 
 def generate_launch_description():
     """Launch a talker and a listener."""
-    return launch.LaunchDescription([
-        launch_ros.actions.Node(
-            executable='nodes/serial_can_receiver/serial_can_receiver_task',
-            output='screen',
-            name='serial_can_receiver_task'
-        ),
-        launch_ros.actions.Node(
-            executable='nodes/serial_can_logger/serial_can_logger_task',
-            output='screen',
-            name='serial_can_logger_task'
-        ),
-    ])
+    return launch.LaunchDescription(
+        [
+            launch_ros.actions.Node(
+                executable="nodes/serial_can_receiver/serial_can_receiver_task",
+                output="screen",
+                name="serial_can_receiver_task",
+            ),
+            launch_ros.actions.Node(
+                executable="nodes/serial_can_logger/serial_can_logger_task",
+                output="screen",
+                name="serial_can_logger_task",
+            ),
+        ]
+    )

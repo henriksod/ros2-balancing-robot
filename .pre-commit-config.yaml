@@ -24,7 +24,7 @@ repos:
     hooks:
     -   id: black
         exclude: tests/
-        args: [--check]
+        args: [--check, --line-length=100]
 -   repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
     hooks:
