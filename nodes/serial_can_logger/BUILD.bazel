@@ -1,0 +1,23 @@
+load("@com_github_mvukov_rules_ros2//ros2:py_defs.bzl", "ros2_py_binary")
+load("@balancing_robot_pip_deps//:requirements.bzl", "requirement")
+load("@rules_yaml//:defs.bzl", "yaml_excerpt")
+
+yaml_excerpt(
+    name = "config_data",
+    src = "//:project_config",
+    path = "nodes.serial_can_logger",
+)
+
+ros2_py_binary(
+    name = "serial_can_logger_task",
+    srcs = ["task.py"],
+    main = "task.py",
+    deps = [
+        "@ros2_rclpy//:rclpy",
+        "//:py_balancing_robot_msgs",
+        requirement("python-can"),
+        requirement("pyyaml"),
+    ],
+    data = [":config_data"],
+    visibility = ["//visibility:public"],
+)

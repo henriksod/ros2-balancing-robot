@@ -1,0 +1,99 @@
+load(
+    "@com_github_mvukov_rules_ros2//ros2:interfaces.bzl",
+    "cpp_ros2_interface_library",
+    "py_ros2_interface_library",
+    "ros2_interface_library",
+)
+
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+
+compile_pip_requirements(
+    name = "python_requirements",
+    extra_args = ["--allow-unsafe"],
+    requirements_in = ":requirements.txt",
+    requirements_txt = ":requirements_lock.txt",
+    tags = ["manual"],
+)
+
+exports_files([
+    "requirements.txt",
+    "requirements_lock.txt",
+])
+
+alias(
+    name = "ros2_lifecycle",
+    actual = "@com_github_mvukov_rules_ros2//ros2:ros2_lifecycle",
+)
+
+alias(
+    name = "ros2_param",
+    actual = "@com_github_mvukov_rules_ros2//ros2:ros2_param",
+)
+
+# Messages
+filegroup(
+    name = "ros_messages",
+    srcs = ["msg/CANMessage.msg"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name="test",
+    outs=["test.txt"],
+    cmd="touch $@",
+)
+
+# Config
+filegroup(
+    name = "project_config",
+    srcs = ["config/config.yaml"],
+    visibility = ["//visibility:public"],
+)
+
+ros2_interface_library(
+    name = "balancing_robot_msgs",
+    srcs = ["//:ros_messages"],
+)
+
+cpp_ros2_interface_library(
+    name = "cpp_balancing_robot_msgs",
+    deps = [":balancing_robot_msgs"],
+    visibility = ["//visibility:public"],
+)
+
+py_ros2_interface_library(
+    name = "py_balancing_robot_msgs",
+    deps = [":balancing_robot_msgs"],
+    visibility = ["//visibility:public"],
+)
+
+# Arduino
+load("//bazel/arduino:defs.bzl", "upload_arduino_sketch")
+load("@rules_yaml//:defs.bzl", "yaml_excerpt")
+
+yaml_excerpt(
+    name = "arduino_config_data",
+    src = ":project_config",
+    path = "arduino",
+)
+
+filegroup(
+    name = "blink_ino",
+    srcs = ["arduino/blink/blink.ino"],
+)
+
+filegroup(
+    name = "micro_ros_publisher_ino",
+    srcs = ["arduino/micro_ros_publisher/micro_ros_publisher.ino"],
+)
+
+upload_arduino_sketch(
+    name = "upload_sketch",
+    config = ":arduino_config_data",
+    sketch = ":micro_ros_publisher_ino",
+    libraries = [
+        "@com_github_micro_ros_micro_ros_arduino//:micro_ros_arduino_zip"
+        #"https://github.com/micro-ROS/micro_ros_arduino.git",
+    ],
+    visibility = ["//visibility:public"],
+)

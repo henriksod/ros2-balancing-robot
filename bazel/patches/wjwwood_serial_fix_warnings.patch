@@ -1,0 +1,30 @@
+diff --git a/src/impl/list_ports/list_ports_linux.cc b/src/impl/list_ports/list_ports_linux.cc
+index db2afb2..bc0c1cc 100644
+--- a/src/impl/list_ports/list_ports_linux.cc
++++ b/src/impl/list_ports/list_ports_linux.cc
+@@ -55,6 +55,7 @@ glob(const vector<string>& patterns)
+     glob_t glob_results;
+ 
+     int glob_retval = glob(patterns[0].c_str(), 0, NULL, &glob_results);
++    static_cast<void>(glob_retval);
+ 
+     vector<string>::const_iterator iter = patterns.begin();
+ 
+@@ -63,7 +64,7 @@ glob(const vector<string>& patterns)
+         glob_retval = glob(iter->c_str(), GLOB_APPEND, NULL, &glob_results);
+     }
+ 
+-    for(int path_index = 0; path_index < glob_results.gl_pathc; path_index++)
++    for(size_t path_index = 0; path_index < glob_results.gl_pathc; path_index++)
+     {
+         paths_found.push_back(glob_results.gl_pathv[path_index]);
+     }
+@@ -237,7 +238,7 @@ format(const char* format, ...)
+     {
+         va_start(ap, format);
+ 
+-        int return_value = vsnprintf(buffer, buffer_size_bytes, format, ap);
++        size_t return_value = vsnprintf(buffer, buffer_size_bytes, format, ap);
+ 
+         if( return_value < 0 )
+         {

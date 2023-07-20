@@ -1,0 +1,34 @@
+diff --git a/legacy/builder/test/sketch_with_config/sketch_with_config.ino b/legacy/builder/test/sketch_with_config/sketch_with_config.ino
+index 08390371..291e5fd5 100644
+--- a/legacy/builder/test/sketch_with_config/sketch_with_config.ino
++++ b/legacy/builder/test/sketch_with_config/sketch_with_config.ino
+@@ -1,7 +1,7 @@
+ #include "config.h"
+ 
+ #ifdef DEBUG
+-#include "src/includes/de bug.h"
++#include "src/includes/debug.h"
+ #endif
+ 
+ #ifdef UNDEF
+diff --git a/legacy/builder/test/sketch_with_config/sketch_with_config.preprocessed.txt b/legacy/builder/test/sketch_with_config/sketch_with_config.preprocessed.txt
+index e633c616..b1da721f 100644
+--- a/legacy/builder/test/sketch_with_config/sketch_with_config.preprocessed.txt
++++ b/legacy/builder/test/sketch_with_config/sketch_with_config.preprocessed.txt
+@@ -3,7 +3,7 @@
+ #include "config.h"
+ 
+ #ifdef DEBUG
+-#include "src/includes/de bug.h"
++#include "src/includes/debug.h"
+ #endif
+ 
+ #ifdef UNDEF
+diff --git "a/legacy/builder/test/sketch_with_config/src/includes/de bug.cpp" b/legacy/builder/test/sketch_with_config/src/includes/debug.cpp
+similarity index 100%
+rename from legacy/builder/test/sketch_with_config/src/includes/de bug.cpp
+rename to legacy/builder/test/sketch_with_config/src/includes/debug.cpp
+diff --git "a/legacy/builder/test/sketch_with_config/src/includes/de bug.h" b/legacy/builder/test/sketch_with_config/src/includes/debug.h
+similarity index 100%
+rename from "legacy/builder/test/sketch_with_config/src/includes/de bug.h"
+rename to legacy/builder/test/sketch_with_config/src/includes/debug.h

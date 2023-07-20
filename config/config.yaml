@@ -1,0 +1,14 @@
+remote:
+  # # ~/.ssh/config example
+  # Host robot
+  #   HostName 192.168.1.227 
+  #   User pi
+  #   Port 22
+  #   IdentityFile ~/.ssh/id_rsa
+  host: robot
+arduino:
+  serial: '/dev/ttyACM0'
+  platform: 'arduino:sam:arduino_due_x_dbg'
+nodes:
+  serial_can_logger:
+    log_file: 'logs/serial_can_logger/data.asc'

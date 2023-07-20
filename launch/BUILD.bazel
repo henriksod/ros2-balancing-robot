@@ -1,0 +1,55 @@
+load("@com_github_mvukov_rules_ros2//ros2:bag.bzl", "ros2_bag")
+load("@com_github_mvukov_rules_ros2//ros2:launch.bzl", "ros2_launch")
+load("@com_github_mvukov_rules_ros2//ros2:topic.bzl", "ros2_topic")
+#load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+#load("@io_bazel_rules_docker//lang:image.bzl", container_image = "app_layer")
+
+ros2_launch(
+    name = "serial_can_receiver_example",
+    launch_file = "serial_can_receiver_example.py",
+    nodes = [
+        "//nodes/serial_can_receiver:serial_can_receiver_task",
+        "//nodes/can_message_listener_example:can_message_listener_task",
+    ],
+)
+
+ros2_launch(
+    name = "serial_can_receiver_logger",
+    launch_file = "serial_can_receiver_logger.py",
+    nodes = [
+        "//nodes/serial_can_receiver:serial_can_receiver_task",
+        "//nodes/serial_can_logger:serial_can_logger_task",
+    ],
+)
+
+#ros2_topic(
+#    name = "can_data",
+#    deps = [
+#        "@ros2_common_interfaces//:py_std_msgs",
+#    ],
+#)
+
+#ros2_bag(
+#    name = "bag",
+#    idl_deps = [
+#        "@ros2_common_interfaces//:std_msgs",
+#        "@ros2_rcl_interfaces//:rcl_interfaces",
+#        "@ros2_rosbag2//:rosbag2_interfaces",
+#    ],
+#)
+
+#container_image(
+#    name = "serial_can_receiver_image",
+#    base = "@ros_deploy_base//image",
+#    binary = ":serial_can_receiver",
+#    docker_run_flags = "-it --rm --network=host",
+#)
+
+#container_push(
+#    name = "serial_can_receiver_publish",
+#    format = "Docker",
+#    image = ":serial_can_receiver_image",
+#    registry = "docker.io",
+#    repository = "henriksod/serial_can_receiver",
+#    tag = "balancing_robot",
+#)
