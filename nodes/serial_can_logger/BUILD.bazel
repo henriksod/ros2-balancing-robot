@@ -11,13 +11,13 @@ yaml_excerpt(
 ros2_py_binary(
     name = "serial_can_logger_task",
     srcs = ["task.py"],
+    data = [":config_data"],
     main = "task.py",
+    visibility = ["//visibility:public"],
     deps = [
-        "@ros2_rclpy//:rclpy",
         "//:py_balancing_robot_msgs",
+        "@ros2_rclpy//:rclpy",
         requirement("python-can"),
         requirement("pyyaml"),
     ],
-    data = [":config_data"],
-    visibility = ["//visibility:public"],
 )

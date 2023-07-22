@@ -1,3 +1,7 @@
+"""
+A module that builds the micro-ros-arduino library
+"""
+
 load("@rules_pkg//:pkg.bzl", "pkg_zip")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
 

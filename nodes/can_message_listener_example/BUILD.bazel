@@ -3,9 +3,9 @@ load("@com_github_mvukov_rules_ros2//ros2:cc_defs.bzl", "ros2_cpp_binary")
 ros2_cpp_binary(
     name = "can_message_listener_task",
     srcs = ["task.cc"],
-    deps = [
-        "@ros2_rclcpp//:rclcpp",
-        "//:cpp_balancing_robot_msgs",
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//:cpp_balancing_robot_msgs",
+        "@ros2_rclcpp//:rclcpp",
+    ],
 )

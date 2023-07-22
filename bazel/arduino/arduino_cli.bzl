@@ -1,3 +1,6 @@
+"""
+A module that builds the arduino-cli tool
+"""
 
 filegroup(
     name = "all_srcs",
@@ -5,14 +8,12 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-
 sh_library(
     name = "arduino_cli_install",
     srcs = ["install.sh"],
     data = [":all_srcs"],
     visibility = ["//visibility:public"],
 )
-
 
 #genrule(
 #    name='bar',

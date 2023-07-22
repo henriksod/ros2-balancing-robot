@@ -4,8 +4,32 @@ load(
     "py_ros2_interface_library",
     "ros2_interface_library",
 )
-
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier_test")
+load("//bazel/cpp/uncrustify:defs.bzl", "uncrustify_test")
+load("//bazel/arduino:defs.bzl", "upload_arduino_sketch")
+load("@rules_yaml//:defs.bzl", "yaml_excerpt")
+
+buildifier_test(
+    name = "buildifier_check",
+    lint_mode = "warn",
+    mode = "check",
+    verbose = True,
+)
+
+buildifier_test(
+    name = "buildifier_fix",
+    mode = "fix",
+)
+
+uncrustify_test(
+    name = "uncrustify_check",
+    check = True,
+)
+
+uncrustify_test(
+    name = "uncrustify_fix",
+)
 
 compile_pip_requirements(
     name = "python_requirements",
@@ -38,9 +62,9 @@ filegroup(
 )
 
 genrule(
-    name="test",
-    outs=["test.txt"],
-    cmd="touch $@",
+    name = "test",
+    outs = ["test.txt"],
+    cmd = "touch $@",
 )
 
 # Config
@@ -57,20 +81,17 @@ ros2_interface_library(
 
 cpp_ros2_interface_library(
     name = "cpp_balancing_robot_msgs",
-    deps = [":balancing_robot_msgs"],
     visibility = ["//visibility:public"],
+    deps = [":balancing_robot_msgs"],
 )
 
 py_ros2_interface_library(
     name = "py_balancing_robot_msgs",
-    deps = [":balancing_robot_msgs"],
     visibility = ["//visibility:public"],
+    deps = [":balancing_robot_msgs"],
 )
 
 # Arduino
-load("//bazel/arduino:defs.bzl", "upload_arduino_sketch")
-load("@rules_yaml//:defs.bzl", "yaml_excerpt")
-
 yaml_excerpt(
     name = "arduino_config_data",
     src = ":project_config",
@@ -90,10 +111,10 @@ filegroup(
 upload_arduino_sketch(
     name = "upload_sketch",
     config = ":arduino_config_data",
-    sketch = ":micro_ros_publisher_ino",
     libraries = [
-        "@com_github_micro_ros_micro_ros_arduino//:micro_ros_arduino_zip"
+        "@com_github_micro_ros_micro_ros_arduino//:micro_ros_arduino_zip",
         #"https://github.com/micro-ROS/micro_ros_arduino.git",
     ],
+    sketch = ":micro_ros_publisher_ino",
     visibility = ["//visibility:public"],
 )

@@ -1,6 +1,9 @@
 # Ignore backup files.
 *~
 
+# Ignore logs dir
+/logs/
+
 ### Bazel ###
 # Ignore Vim swap files.
 .*.swp
