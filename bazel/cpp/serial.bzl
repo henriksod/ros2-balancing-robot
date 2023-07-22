@@ -1,3 +1,7 @@
+"""
+A module that builds the cpp serial library
+"""
+
 cc_library(
     name = "cpp_serial",
     srcs = glob(["src/**/*.cc"]),
@@ -5,4 +9,3 @@ cc_library(
     includes = ["include/"],
     visibility = ["//visibility:public"],
 )
-

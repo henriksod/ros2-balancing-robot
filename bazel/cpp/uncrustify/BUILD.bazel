@@ -1,0 +1,8 @@
+exports_files(
+    [
+        "runner.bash.template",
+        "exec.sh",
+        "defaults.cfg",
+    ],
+    visibility = ["//visibility:public"],
+)

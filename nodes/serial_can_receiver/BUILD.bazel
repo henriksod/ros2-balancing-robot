@@ -2,17 +2,17 @@ load("@com_github_mvukov_rules_ros2//ros2:cc_defs.bzl", "ros2_cpp_binary")
 
 cc_library(
     name = "crc8",
-    hdrs = ["crc8.hpp"],
+    hdrs = ["include/crc8.hpp"],
 )
 
 ros2_cpp_binary(
     name = "serial_can_receiver_task",
     srcs = ["task.cc"],
-    deps = [
-        "@ros2_rclcpp//:rclcpp",
-        "@com_github_wjwwood_serial//:cpp_serial",
-        "//:cpp_balancing_robot_msgs",
-        ":crc8"
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        ":crc8",
+        "//:cpp_balancing_robot_msgs",
+        "@com_github_wjwwood_serial//:cpp_serial",
+        "@ros2_rclcpp//:rclcpp",
+    ],
 )

@@ -1,11 +1,9 @@
 remote:
-  # # ~/.ssh/config example
-  # Host robot
-  #   HostName 192.168.1.227
-  #   User pi
-  #   Port 22
-  #   IdentityFile ~/.ssh/id_rsa
-  host: robot
+  host_alias: robot
+  host_name: 192.168.1.227
+  user: pi
+  port: 22
+  identity_file: ~/.ssh/id_rsa
 arduino:
   serial: '/dev/ttyACM0'
   platform: 'arduino:sam:arduino_due_x_dbg'

@@ -22,16 +22,19 @@ class MinimalSubscriber : public rclcpp::Node {
  public:
   MinimalSubscriber() : Node("minimal_subscriber") {
     subscription_ = create_subscription<balancing_robot_msgs::msg::CANMessage>(
-        "can_data", 10, [this](balancing_robot_msgs::msg::CANMessage::UniquePtr msg) {
-          RCLCPP_INFO(get_logger(), "I heard: '%s'", balancing_robot_msgs::msg::to_yaml(*msg).c_str());
-        });
+      "can_data", 10,
+      [this] (balancing_robot_msgs::msg::CANMessage::UniquePtr msg) {
+      RCLCPP_INFO(get_logger(), "I heard: '%s'",
+                  balancing_robot_msgs::msg::to_yaml(*msg).c_str());
+    });
   }
 
  private:
-  rclcpp::Subscription<balancing_robot_msgs::msg::CANMessage>::SharedPtr subscription_;
+  rclcpp::Subscription<balancing_robot_msgs::msg::CANMessage>::SharedPtr
+    subscription_;
 };
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
   rclcpp::spin(std::make_shared<MinimalSubscriber>());
   rclcpp::shutdown();

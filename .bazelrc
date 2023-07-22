@@ -31,7 +31,7 @@ build:clang --repo_env=CXX=clang++
 build:clang --linkopt="-fuse-ld=lld"
 
 # Remote build
-build:re --define REMOTE=1
+build:re --remote_executor=grpc://$(cat config/config.yaml | grep -oP '(?<=host_name: ).*'):8980
 
 # Load any settings specific to the current user.
 # user.bazelrc should appear in .gitignore so that settings are not shared with
