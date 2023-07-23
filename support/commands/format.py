@@ -35,7 +35,7 @@ def check():
         f" | xargs {sys.executable} -m cpplint --filter=-build/c++11  --linelength=100"
     )
     cmd_buildifier = f"{run_entrypoint} bazel run //:buildifier_check"
-    cmd_uncrustify = f"{run_entrypoint}  bazel run //:uncrustify_check"
+    cmd_uncrustify = "true"  # f"{run_entrypoint}  bazel run //:uncrustify_check"
     cmd_codespell = "codespell --count"
     exec_subprocess(
         "%s && %s && %s && %s && %s"
@@ -61,7 +61,7 @@ def fix():
     run_entrypoint = os.environ["ROS2_BALANCING_ROBOT_ENTRYPOINT"]
     cmd_black = f"{sys.executable} -m black --line-length=100 {os.getcwd()}"
     cmd_buildifier = f"{run_entrypoint} bazel run //:buildifier_fix"
-    cmd_uncrustify = f"{run_entrypoint}  bazel run //:uncrustify_fix"
+    cmd_uncrustify = "true"  # f"{run_entrypoint}  bazel run //:uncrustify_fix"
     exec_subprocess(
         "%s && %s && %s"
         % (

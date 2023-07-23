@@ -30,7 +30,14 @@ build:clang --repo_env=CC=clang
 build:clang --repo_env=CXX=clang++
 build:clang --linkopt="-fuse-ld=lld"
 
+# Raspberry pi
+build:pi --crosstool_top=@rpi_bazel//tools/cc_toolchain:toolchain
+build:pi --cpu=aarch64
+build:pi --config=clang
+build:pi --compiler=clang
+
 # Remote build
+build:re --config=pi
 build:re --remote_executor=grpc://$(cat config/config.yaml | grep -oP '(?<=host_name: ).*'):8980
 
 # Load any settings specific to the current user.

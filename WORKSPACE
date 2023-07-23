@@ -162,6 +162,21 @@ http_archive(
     url = "https://github.com/uncrustify/uncrustify/archive/refs/tags/uncrustify-0.77.1.tar.gz",
 )
 
+# Toolchain: aarch64-linux-gnueabihf
+http_archive(
+    name = "rpi_bazel",
+    sha256 = "ef22526864f46d4bc42b09b421050697ebc1970f279f196b8f855048df6f3e3e",
+    strip_prefix = "rpi_bazel-964b6feb8bb14b2a58876b406f17266538794c3a",
+    url = "https://github.com/mjbots/rpi_bazel/archive/964b6feb8bb14b2a58876b406f17266538794c3a.zip",
+)
+
+load(
+    "@rpi_bazel//tools/workspace:default.bzl",
+    rpi_bazel_deps = "add_default_repositories",
+)
+
+rpi_bazel_deps()
+
 #########################################
 # Below are rules specific to this repo #
 #########################################

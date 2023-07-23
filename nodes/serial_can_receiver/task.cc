@@ -41,8 +41,7 @@ class SerialCANReceiver : public rclcpp::Node {
   /// TODO: remove hardcoded values
   // port, baudrate, timeout in milliseconds
   SerialCANReceiver() : Node("serial_can_receiver"),
-    my_serial_{"/dev/ttyACM0", 460800, serial::Timeout::simpleTimeout(1000)},
-    count_(0) {
+    my_serial_{"/dev/ttyACM0", 460800, serial::Timeout::simpleTimeout(1000)} {
     declare_parameter("callback_period_ms", 10);
     auto callback_period_ms = get_parameter("callback_period_ms").as_int();
 
@@ -54,90 +53,91 @@ class SerialCANReceiver : public rclcpp::Node {
       return;
     }
 
+    auto timer_callback =
+      [this] () {
+        auto message = CANMessage();
+
+        size_t num_available   = my_serial_.available();
+        size_t prev_buffer_idx = buffer_idx;
+
+        for (; buffer_idx < prev_buffer_idx + num_available;
+             buffer_idx++) {
+          if (buffer_idx >= buffer_size)
+            break;
+          buffer[buffer_idx] = my_serial_.read().front();
+        }
+
+        if (buffer_idx < buffer_size)
+          return;
+
+        buffer_idx = 0;
+
+        std::string result(buffer, buffer_size);
+        std::size_t foundAA = result.find(static_cast<char>(0xAA));
+
+        if (foundAA == std::string::npos)  // If not found
+          // AA
+          return;
+
+        std::size_t foundBB = result.find(static_cast<char>(0xBB),
+                                          foundAA);
+
+        if (foundBB == std::string::npos)  // If not found
+          // BB
+          return;
+
+        // Anything other than 16 is an invalid size
+        if (foundBB - foundAA != 16)
+          return;
+
+        result = result.substr(foundAA + 1, foundBB - 1);
+
+        std::memcpy(&message.timestamp,
+                    result.substr(0, 4).c_str(),
+                    sizeof(int32_t));
+        std::memcpy(&message.dlc,
+                    result.substr(4, 1).c_str(),
+                    sizeof(int8_t));
+        std::memcpy(&message.arbitration_id,
+                    result.substr(5, 4).c_str(),
+                    sizeof(int8_t));
+        std::string _payload =
+          result.substr(9, message.dlc);
+        std::copy(_payload.begin(),
+                  _payload.end(),
+                  message.payload.data());
+        message.counter = message.payload[message.dlc - 2];
+        message.crc     = message.payload[message.dlc - 1];
+        message.invalid = !crc8::check_crc8(message.payload,
+                                            message.dlc,
+                                            message.crc);
+        RCLCPP_DEBUG(get_logger(),
+                     "Publishing: '%s'",
+                     balancing_robot_msgs::msg::to_yaml(
+                       message).c_str());
+        publisher_->publish(message);
+
+        // Flush input if we are delayed
+        if (my_serial_.available() > 100) {
+          RCLCPP_DEBUG(get_logger(),
+                       "We are delayed, flush!");
+          my_serial_.flushInput();
+        }
+      };
+
     publisher_ = create_publisher<CANMessage>("can_data", 10);
-    timer_     = create_wall_timer(std::chrono::milliseconds(callback_period_ms),
-                                   &this->callback);
+    timer_     =
+      create_wall_timer(std::chrono::milliseconds(callback_period_ms),
+                        timer_callback);
   }
 
  private:
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<CANMessage>::SharedPtr publisher_;
-  size_t count_;
 
   static const size_t buffer_size = 20;
   size_t buffer_idx               = 0;
   char buffer[buffer_size]        = {};
-
-  void callback() {
-    auto message = CANMessage();
-
-    size_t num_available   = my_serial_.available();
-    size_t prev_buffer_idx = buffer_idx;
-
-    for (; buffer_idx < prev_buffer_idx + num_available;
-         buffer_idx++) {
-      if (buffer_idx >= buffer_size)
-        break;
-      buffer[buffer_idx] = my_serial_.read().front();
-    }
-
-    if (buffer_idx < buffer_size)
-      return;
-
-    buffer_idx = 0;
-
-    std::string result(buffer, buffer_size);
-    std::size_t foundAA = result.find(static_cast<char>(0xAA));
-
-    if (foundAA == std::string::npos)  // If not found
-      // AA
-      return;
-
-    std::size_t foundBB = result.find(static_cast<char>(0xBB),
-                                      foundAA);
-
-    if (foundBB == std::string::npos)  // If not found
-      // BB
-      return;
-
-    // Anything other than 16 is an invalid size
-    if (foundBB - foundAA != 16)
-      return;
-
-    result = result.substr(foundAA + 1, foundBB - 1);
-
-    std::memcpy(&message.timestamp,
-                result.substr(0, 4).c_str(),
-                sizeof(int32_t));
-    std::memcpy(&message.dlc,
-                result.substr(4, 1).c_str(),
-                sizeof(int8_t));
-    std::memcpy(&message.arbitration_id,
-                result.substr(5, 4).c_str(),
-                sizeof(int8_t));
-    std::string _payload =
-      result.substr(9, message.dlc);
-    std::copy(_payload.begin(),
-              _payload.end(),
-              message.payload.data());
-    message.counter = message.payload[message.dlc - 2];
-    message.crc     = message.payload[message.dlc - 1];
-    message.invalid = !crc8::check_crc8(message.payload,
-                                        message.dlc,
-                                        message.crc);
-    RCLCPP_DEBUG(get_logger(),
-                 "Publishing: '%s'",
-                 balancing_robot_msgs::msg::to_yaml(
-                   message).c_str());
-    publisher_->publish(message);
-
-    // Flush input if we are delayed
-    if (my_serial_.available() > 100) {
-      RCLCPP_DEBUG(get_logger(),
-                   "We are delayed, flush!");
-      my_serial_.flushInput();
-    }
-  }
 
   std::string enumerate_ports() {
     std::vector<serial::PortInfo> devices_found = serial::list_ports();

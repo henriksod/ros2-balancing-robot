@@ -16,7 +16,7 @@ RUN apt-get update \
 RUN apt-get install -y --no-install-recommends python3 python3-pip python3-dev
 
 # Install cpp compilers and dependencies
-RUN apt-get install -y --no-install-recommends gcc g++ clang cmake build-essential
+RUN apt-get install -y --no-install-recommends gcc g++ clang cmake lld build-essential libncurses5
 
 # Creating the man pages directory to deal with the slim variants not having it.
 RUN apt-get install -y --no-install-recommends ca-certificates curl gnupg patch \
