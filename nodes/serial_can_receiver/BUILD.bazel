@@ -1,6 +1,4 @@
-load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
 load("@com_github_mvukov_rules_ros2//ros2:cc_defs.bzl", "ros2_cpp_binary")
-load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 
 cc_library(
     name = "crc8",
@@ -17,17 +15,4 @@ ros2_cpp_binary(
         "@com_github_wjwwood_serial//:cpp_serial",
         "@ros2_rclcpp//:rclcpp",
     ],
-)
-
-platform_transition_filegroup(
-    name = "serial_can_receiver_task_linux_armv7",
-    srcs = [":serial_can_receiver_task"],
-    target_platform = "@aspect_gcc_toolchain//platforms:armv7_linux",
-)
-
-pkg_tar(
-    name = "serial_can_receiver_task_linux_armv7_tar",
-    srcs = [":serial_can_receiver_task_linux_armv7"],
-    include_runfiles = True,
-    strip_prefix = "/",
 )

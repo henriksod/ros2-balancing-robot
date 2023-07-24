@@ -91,6 +91,12 @@ py_ros2_interface_library(
     deps = [":balancing_robot_msgs"],
 )
 
+filegroup(
+    name = "aarch64_launcher_template",
+    srcs = ["support/tools/launch_package.py.template"],
+    visibility = ["//visibility:public"],
+)
+
 # Arduino
 yaml_excerpt(
     name = "arduino_config_data",

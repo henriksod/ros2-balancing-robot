@@ -25,10 +25,5 @@ def generate_launch_description():
                 output="screen",
                 name="serial_can_receiver_task",
             ),
-            launch_ros.actions.Node(
-                executable="nodes/can_message_listener_example/can_message_listener_task",
-                output="screen",
-                name="can_message_listener_task",
-            ),
         ]
     )

@@ -36,8 +36,9 @@ build:clang --repo_env=CXX=clang++
 build:clang --linkopt="-fuse-ld=lld"
 
 # Raspberry pi
-build:pi --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
-build:pi --incompatible_enable_cc_toolchain_resolution
+build:aarch64 --incompatible_enable_cc_toolchain_resolution
+build:aarch64 --platforms=@aspect_gcc_toolchain//platforms:aarch64_linux
+# build:pi --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 
 # Load any settings specific to the current user.
 # user.bazelrc should appear in .gitignore so that settings are not shared with

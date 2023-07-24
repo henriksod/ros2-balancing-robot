@@ -29,23 +29,12 @@ gcc_register_toolchain(
     target_arch = ARCHS.aarch64,
 )
 
-gcc_register_toolchain(
-    name = "gcc_toolchain_armv7",
-    target_arch = ARCHS.armv7,
-)
-
-gcc_register_toolchain(
-    name = "gcc_toolchain_x86_64",
-    sysroot_variant = "x86_64-X11",
-    target_arch = ARCHS.x86_64,
-)
-
 # In a normal workflow, you would typically import rules_ros2 into your
 # (mono)repo as follows:
 http_archive(
     name = "com_github_mvukov_rules_ros2",
-    #patch_args = ["-p1"],
-    #patches = ["//bazel/patches:rmw_cyclonedds_pic.patch"],
+    patch_args = ["-p1"],
+    patches = ["//bazel/patches:cyclonedds_pic.patch"],
     # Here you can use e.g. sha256sum cli utility to compute the sha sum.
     sha256 = "c1ff135dd1a6a5c518357285611b1c4de4af6eb9249bf007a21479e35b1a6006",
     strip_prefix = "rules_ros2-89dd5fa0add476e85a438c8575f353ecf6162c57",
@@ -64,7 +53,7 @@ load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 
 python_register_toolchains(
     name = "rules_ros2_python",
-    python_version = "3.8.13",
+    python_version = "3.8.15",
 )
 
 load("@rules_python//python:pip.bzl", "pip_parse")
@@ -85,18 +74,18 @@ load(
 install_rules_ros2_pip_deps()
 
 # Rule repository, note that it's recommended to use a pinned commit to a released version of the rules
-http_archive(
-    name = "rules_foreign_cc",
-    sha256 = "9561b3994232ccb033278ade83c2ce48e763e9cae63452cd8fea457bedd87d05",
-    strip_prefix = "rules_foreign_cc-816905a078773405803e86635def78b61d2f782d",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/816905a078773405803e86635def78b61d2f782d.tar.gz",
-)
+# http_archive(
+#     name = "rules_foreign_cc",
+#     sha256 = "9561b3994232ccb033278ade83c2ce48e763e9cae63452cd8fea457bedd87d05",
+#     strip_prefix = "rules_foreign_cc-816905a078773405803e86635def78b61d2f782d",
+#     url = "https://github.com/bazelbuild/rules_foreign_cc/archive/816905a078773405803e86635def78b61d2f782d.tar.gz",
+# )
 
-load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+#load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
 # This sets up some common toolchains for building targets. For more details, please see
 # https://github.com/bazelbuild/rules_foreign_cc/tree/main/docs#rules_foreign_cc_dependencies
-rules_foreign_cc_dependencies()
+#rules_foreign_cc_dependencies()
 
 http_archive(
     name = "rules_yaml",
