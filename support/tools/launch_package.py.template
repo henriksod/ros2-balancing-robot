@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+
+
+import os
+import sys
+import subprocess
+
+
+ENTRYPOINT = "launch/@@@LAUNCHER_NAME@@@_launch.py"
+MODULE_SPACE = "external"
+PYTHON_DEPS = [
+    "osrf_pycommon",
+    "ros2_rpyutils",
+    "ros2_ament_index/ament_index_python",
+    "rules_ros2_pip_deps_lark_parser/site-packages",
+    "ros2_launch/launch",
+    "ros2_rcl_interfaces",
+    "ros2_rosidl/rosidl_parser",
+    "rules_ros2_pip_deps_numpy/site-packages",
+    "ros2_unique_identifier_msgs",
+    "ros2_rclpy/rclpy",
+    "rules_ros2_pip_deps_pyyaml/site-packages",
+    "ros2_launch_ros/launch_ros",
+    "rules_ros2_pip_deps_netifaces/site-packages",
+    "rules_ros2_pip_deps_pyparsing/site-packages",
+    "rules_ros2_pip_deps_packaging/site-packages",
+    "rules_ros2_pip_deps_types_pkg_resources/site-packages",
+    "ros2cli/ros2cli",
+    "rules_ros2_pip_deps_docutils/site-packages",
+    "rules_ros2_pip_deps_six/site-packages",
+    "rules_ros2_pip_deps_python_dateutil/site-packages",
+    "rules_ros2_pip_deps_setuptools/site-packages",
+    "rules_ros2_pip_deps_catkin_pkg/site-packages",
+    "rules_ros2_pip_deps_empy/site-packages",
+    "ros2cli/ros2pkg",
+    "ros2_launch_ros/ros2launch",
+]
+PYTHON_BINARY = "rules_ros2_python_aarch64-unknown-linux-gnu/bin/python3"
+
+
+def Deduplicate(items):
+    """Efficiently filter out duplicates, keeping the first element only."""
+    seen = set()
+    for it in items:
+        if it not in seen:
+            seen.add(it)
+            yield it
+
+
+def Main():
+    args = sys.argv[1:]
+
+    new_env = {}
+
+    # Assume this script is located at the root of the package
+    package_root_dir = os.getcwd()
+    module_space = os.path.join(package_root_dir, MODULE_SPACE)
+
+    # The main Python source file.
+    main_filename = ENTRYPOINT
+
+    python_path_entries = [module_space] + ["%s/%s" % (module_space, path) for path in PYTHON_DEPS]
+    python_path_entries.append("")
+
+    old_python_path = os.environ.get("PYTHONPATH")
+    if old_python_path:
+        python_path_entries += old_python_path.split(os.pathsep)
+
+    python_path = os.pathsep.join(Deduplicate(python_path_entries))
+
+    new_env["PYTHONPATH"] = python_path
+
+    # Don't prepend a potentially unsafe path to sys.path
+    # See: https://docs.python.org/3.11/using/cmdline.html#envvar-PYTHONSAFEPATH
+    new_env["PYTHONSAFEPATH"] = "1"
+
+    new_env.update((key, val) for key, val in os.environ.items() if key not in new_env)
+
+    python_program = "%s/%s" % (module_space, PYTHON_BINARY)
+
+    try:
+        sys.stdout.flush()
+        ret_code = subprocess.call(
+            [python_program, main_filename] + args, env=new_env, cwd=package_root_dir
+        )
+        sys.exit(ret_code)
+
+    except EnvironmentError:
+        # This works from Python 2.4 all the way to 3.x.
+        e = sys.exc_info()[1]
+        # This exception occurs when os.execv() fails for some reason.
+        if not getattr(e, "filename", None):
+            e.filename = python_program  # Add info to error message
+        raise
+
+
+if __name__ == "__main__":
+    Main()

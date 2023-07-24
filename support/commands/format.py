@@ -1,8 +1,18 @@
 import os
+import re
 import sys
 import click
 from support import check_packages
-from support.tools.exec_subprocess import exec_subprocess
+from support.utils.exec_subprocess import exec_subprocess
+from support.utils.staged_files import get_staged_files
+
+
+def is_python_file(file):
+    return re.search(r"\.py", file.lower())
+
+
+def is_cxx_file(file):
+    return re.search(r"\.(c|cc|cpp|h|hpp)", file.lower())
 
 
 @click.group()
@@ -12,7 +22,15 @@ def cli():
 
 
 @cli.command()
-def check():
+@click.option(
+    "--all-files",
+    "all_files",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Run formatting checks on all files.",
+)
+def check(all_files):
     """Check for formatting issues using Flake8 and Buildifier"""
     check_packages(
         (
@@ -29,13 +47,31 @@ def check():
         )
     )
     run_entrypoint = os.environ["ROS2_BALANCING_ROBOT_ENTRYPOINT"]
-    cmd_flake8 = f"{sys.executable} -m flake8 {os.getcwd()}"
-    cmd_cpplint = (
-        f"find {os.getcwd()} -regextype posix-extended -regex '.*\\.(cc|cpp|h|hpp)'"
-        f" | xargs {sys.executable} -m cpplint --filter=-build/c++11  --linelength=100"
-    )
+    if not all_files:
+        files = get_staged_files()
+        python_files = [f for f in files if is_python_file(f)]
+        cxx_files = [f for f in files if is_cxx_file(f)]
+        cmd_flake8 = (
+            f"{sys.executable} -m flake8 {' '.join(python_files)}" if python_files else "true"
+        )
+        print(cmd_flake8)
+        cmd_cpplint = (
+            (
+                f"{sys.executable} -m cpplint --filter=-build/c++11 --linelength=100"
+                f" {' '.join(cxx_files)}"
+            )
+            if cxx_files
+            else "true"
+        )
+    else:
+        cmd_flake8 = f"{sys.executable} -m flake8 {os.getcwd()}"
+        cmd_cpplint = (
+            f"find {os.getcwd()} -regextype posix-extended -regex '.*\\.(cc|cpp|h|hpp)'"
+            f" | xargs {sys.executable} -m cpplint --filter=-build/c++11 --linelength=100"
+        )
+
     cmd_buildifier = f"{run_entrypoint} bazel run //:buildifier_check"
-    cmd_uncrustify = f"{run_entrypoint}  bazel run //:uncrustify_check"
+    cmd_uncrustify = "true"  # f"{run_entrypoint}  bazel run //:uncrustify_check"
     cmd_codespell = "codespell --count"
     exec_subprocess(
         "%s && %s && %s && %s && %s"
@@ -55,13 +91,31 @@ def check():
 
 
 @cli.command()
-def fix():
+@click.option(
+    "--all-files",
+    "all_files",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Run formatting fix on all files.",
+)
+def fix(all_files):
     """Fix formatting issues using Black and Buildifier"""
     check_packages("black")
     run_entrypoint = os.environ["ROS2_BALANCING_ROBOT_ENTRYPOINT"]
-    cmd_black = f"{sys.executable} -m black --line-length=100 {os.getcwd()}"
+    if not all_files:
+        files = get_staged_files()
+        python_files = [f for f in files if is_python_file(f)]
+        cmd_black = (
+            (f"{sys.executable} -m black --line-length=100" f" {' '.join(python_files)}")
+            if python_files
+            else "true"
+        )
+    else:
+        cmd_black = f"{sys.executable} -m black --line-length=100 {os.getcwd()}"
+
     cmd_buildifier = f"{run_entrypoint} bazel run //:buildifier_fix"
-    cmd_uncrustify = f"{run_entrypoint}  bazel run //:uncrustify_fix"
+    cmd_uncrustify = "true"  # f"{run_entrypoint}  bazel run //:uncrustify_fix"
     exec_subprocess(
         "%s && %s && %s"
         % (

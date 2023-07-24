@@ -2,10 +2,39 @@ workspace(name = "balancing_robot")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+# Toolchain: aarch64-linux-gnueabihf
+http_archive(
+    name = "aspect_gcc_toolchain",
+    sha256 = "8850373f24d3f8bb6e8f36e3e8e7edc93d948964f8f201e920af2c8ffba2002c",
+    strip_prefix = "gcc-toolchain-4bd1f94536ee92b7c49673931773038d923ee86e",
+    url = "https://github.com/aspect-build/gcc-toolchain/archive/4bd1f94536ee92b7c49673931773038d923ee86e.tar.gz",
+)
+
+load("@aspect_gcc_toolchain//toolchain:repositories.bzl", "gcc_toolchain_dependencies")
+
+gcc_toolchain_dependencies()
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies")
+
+aspect_bazel_lib_dependencies()
+
+load("@aspect_gcc_toolchain//toolchain:defs.bzl", "ARCHS", "gcc_register_toolchain")
+
+gcc_register_toolchain(
+    name = "gcc_toolchain_aarch64",
+    target_arch = ARCHS.aarch64,
+)
+
 # In a normal workflow, you would typically import rules_ros2 into your
 # (mono)repo as follows:
 http_archive(
     name = "com_github_mvukov_rules_ros2",
+    patch_args = ["-p1"],
+    patches = ["//bazel/patches:cyclonedds_pic.patch"],
     # Here you can use e.g. sha256sum cli utility to compute the sha sum.
     sha256 = "c1ff135dd1a6a5c518357285611b1c4de4af6eb9249bf007a21479e35b1a6006",
     strip_prefix = "rules_ros2-89dd5fa0add476e85a438c8575f353ecf6162c57",
@@ -24,7 +53,7 @@ load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 
 python_register_toolchains(
     name = "rules_ros2_python",
-    python_version = "3.8.13",
+    python_version = "3.8.15",
 )
 
 load("@rules_python//python:pip.bzl", "pip_parse")
@@ -45,18 +74,18 @@ load(
 install_rules_ros2_pip_deps()
 
 # Rule repository, note that it's recommended to use a pinned commit to a released version of the rules
-http_archive(
-    name = "rules_foreign_cc",
-    sha256 = "c2cdcf55ffaf49366725639e45dedd449b8c3fe22b54e31625eb80ce3a240f1e",
-    strip_prefix = "rules_foreign_cc-0.1.0",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.1.0.zip",
-)
+# http_archive(
+#     name = "rules_foreign_cc",
+#     sha256 = "9561b3994232ccb033278ade83c2ce48e763e9cae63452cd8fea457bedd87d05",
+#     strip_prefix = "rules_foreign_cc-816905a078773405803e86635def78b61d2f782d",
+#     url = "https://github.com/bazelbuild/rules_foreign_cc/archive/816905a078773405803e86635def78b61d2f782d.tar.gz",
+# )
 
-load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+#load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
 # This sets up some common toolchains for building targets. For more details, please see
 # https://github.com/bazelbuild/rules_foreign_cc/tree/main/docs#rules_foreign_cc_dependencies
-rules_foreign_cc_dependencies()
+#rules_foreign_cc_dependencies()
 
 http_archive(
     name = "rules_yaml",
@@ -161,6 +190,21 @@ http_archive(
     strip_prefix = "uncrustify-uncrustify-0.77.1",
     url = "https://github.com/uncrustify/uncrustify/archive/refs/tags/uncrustify-0.77.1.tar.gz",
 )
+
+# Toolchain: aarch64-linux-gnueabihf
+#http_archive(
+#    name = "rpi_bazel",
+#    sha256 = "ef22526864f46d4bc42b09b421050697ebc1970f279f196b8f855048df6f3e3e",
+#    strip_prefix = "rpi_bazel-964b6feb8bb14b2a58876b406f17266538794c3a",
+#    url = "https://github.com/mjbots/rpi_bazel/archive/964b6feb8bb14b2a58876b406f17266538794c3a.zip",
+#)
+
+#load(
+#    "@rpi_bazel//tools/workspace:default.bzl",
+#    rpi_bazel_deps = "add_default_repositories",
+#)
+
+#rpi_bazel_deps()
 
 #########################################
 # Below are rules specific to this repo #

@@ -23,15 +23,22 @@ build --heap_dump_on_oom
 build --noexperimental_check_output_files
 
 # Don't bother building targets which aren't dependencies of the tests.
-test --build_tests_only
+# test --build_tests_only
+
+test --sandbox_default_allow_network=false
+test --test_output=errors
+
+build:debug --verbose_failures --sandbox_debug --toolchain_resolution_debug
 
 # To use a clang compiler, invoke Bazel with `--config=clang`.
 build:clang --repo_env=CC=clang
 build:clang --repo_env=CXX=clang++
 build:clang --linkopt="-fuse-ld=lld"
 
-# Remote build
-build:re --remote_executor=grpc://$(cat config/config.yaml | grep -oP '(?<=host_name: ).*'):8980
+# Raspberry pi
+build:aarch64 --incompatible_enable_cc_toolchain_resolution
+build:aarch64 --platforms=@aspect_gcc_toolchain//platforms:aarch64_linux
+# build:pi --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 
 # Load any settings specific to the current user.
 # user.bazelrc should appear in .gitignore so that settings are not shared with
