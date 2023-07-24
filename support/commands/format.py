@@ -2,7 +2,7 @@ import os
 import sys
 import click
 from support import check_packages
-from support.tools.exec_subprocess import exec_subprocess
+from support.utils.exec_subprocess import exec_subprocess
 
 
 @click.group()

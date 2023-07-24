@@ -1,4 +1,5 @@
 load("@com_github_mvukov_rules_ros2//ros2:launch.bzl", "ros2_launch")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 #load("@com_github_mvukov_rules_ros2//ros2:bag.bzl", "ros2_bag")
 #load("@com_github_mvukov_rules_ros2//ros2:topic.bzl", "ros2_topic")
 #load("@io_bazel_rules_docker//container:container.bzl", "container_push")
@@ -9,7 +10,7 @@ ros2_launch(
     launch_file = "serial_can_receiver_example.py",
     nodes = [
         "//nodes/serial_can_receiver:serial_can_receiver_task",
-        "//nodes/can_message_listener_example:can_message_listener_task",
+        #"//nodes/can_message_listener_example:can_message_listener_task",
     ],
 )
 
@@ -20,6 +21,13 @@ ros2_launch(
         "//nodes/serial_can_receiver:serial_can_receiver_task",
         "//nodes/serial_can_logger:serial_can_logger_task",
     ],
+)
+
+pkg_tar(
+    name = "serial_can_receiver_example_tar",
+    srcs = [":serial_can_receiver_example"],
+    include_runfiles = True,
+    strip_prefix = "/",
 )
 
 #ros2_topic(
