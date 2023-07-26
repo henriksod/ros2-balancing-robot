@@ -5,7 +5,7 @@ from loguru import logger
 def get_staged_files() -> list[str]:
     try:
         output = subprocess.run(
-            "git status -s | grep -E '^[M|A]' | cut -f3- -d' '",
+            "git status -s | grep -E '^(AM|MM|A|M)' | cut -f2- -d' ' | tr -d ' '",
             capture_output=True,
             shell=True,
             text=True,

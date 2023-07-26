@@ -2,7 +2,14 @@
 
 import os
 import sys
+import json
 from support import check_packages
+
+check_packages("pyyaml")
+import yaml  # noqa
+
+with open(f"{os.getcwd()}/config/config.yaml") as f:
+    os.environ["ROS2_BALANCING_ROBOT_CONFIG"] = json.dumps(yaml.safe_load(f))
 
 # Set environment variable to point to this file
 os.environ["ROS2_BALANCING_ROBOT_ENTRYPOINT"] = __file__

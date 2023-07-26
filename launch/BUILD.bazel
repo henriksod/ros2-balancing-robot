@@ -1,6 +1,5 @@
 load("@com_github_mvukov_rules_ros2//ros2:launch.bzl", "ros2_launch")
-load("@com_github_mvukov_rules_ros2//third_party:expand_template.bzl", "expand_template")
-load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+#load("@com_github_mvukov_rules_ros2//third_party:expand_template.bzl", "expand_template")
 #load("@com_github_mvukov_rules_ros2//ros2:bag.bzl", "ros2_bag")
 #load("@com_github_mvukov_rules_ros2//ros2:topic.bzl", "ros2_topic")
 #load("@io_bazel_rules_docker//container:container.bzl", "container_push")
@@ -12,6 +11,7 @@ ros2_launch(
     nodes = [
         "//nodes/serial_can_receiver:serial_can_receiver_task",
     ],
+    visibility = ["//visibility:public"],
 )
 
 ros2_launch(
@@ -21,26 +21,7 @@ ros2_launch(
         "//nodes/serial_can_receiver:serial_can_receiver_task",
         "//nodes/serial_can_logger:serial_can_logger_task",
     ],
-)
-
-expand_template(
-    name = "serial_can_receiver_example_launch_script",
-    out = "launch_package",
-    is_executable = True,
-    substitutions = {
-        "@@@LAUNCHER_NAME@@@": "serial_can_receiver_example",
-    },
-    template = "//:aarch64_launcher_template",
-)
-
-pkg_tar(
-    name = "serial_can_receiver_example_tar",
-    srcs = [
-        ":serial_can_receiver_example",
-        ":serial_can_receiver_example_launch_script",
-    ],
-    include_runfiles = True,
-    strip_prefix = "/",
+    visibility = ["//visibility:public"],
 )
 
 #ros2_topic(

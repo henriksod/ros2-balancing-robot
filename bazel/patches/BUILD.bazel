@@ -1,4 +1,6 @@
 exports_files([
     "remove_filename_spaces.patch",
     "wjwwood_serial_fix_warnings.patch",
+    "cyclonedds_pic.patch",
+    "platform.txt",
 ])

@@ -1,0 +1,11 @@
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+
+pkg_tar(
+    name = "serial_can_receiver_example",
+    srcs = [
+        "//:upload_sketch_packed",
+        "//launch:serial_can_receiver_example",
+    ],
+    include_runfiles = True,
+    strip_prefix = "/",
+)

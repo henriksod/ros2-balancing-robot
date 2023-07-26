@@ -254,9 +254,9 @@ http_archive(
 
 # micro-ros-agent
 http_archive(
-    name = "com_github_micro_ros_micro_ros_arduino",
+    name = "com_github_henriksod_micro_ros_arduino-cortex_m3-arm-none-eabi-gcc-7-2017q4",
     build_file = "//bazel/arduino:micro_ros_arduino.bzl",
-    sha256 = "82b934bce6586a9487b0b36bcaf48d21b66ad2afe7093c0a3813362660f94fbc",
-    strip_prefix = "micro_ros_arduino-2.0.7-humble",
-    url = "https://github.com/micro-ROS/micro_ros_arduino/archive/refs/tags/v2.0.7-humble.tar.gz",
+    sha256 = "e9aba330222c346e0fb5241ddb4347306a045ca7ed8031fd7a259f492028a6b1",
+    strip_prefix = "micro_ros_arduino-cortex_m3-arm-none-eabi-gcc-7-2017q4-a476b2c6ee8001af20acd1aa56fc609927d57efd",
+    url = "https://github.com/henriksod/micro_ros_arduino-cortex_m3-arm-none-eabi-gcc-7-2017q4/archive/a476b2c6ee8001af20acd1aa56fc609927d57efd.tar.gz",
 )

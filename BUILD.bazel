@@ -4,10 +4,10 @@ load(
     "py_ros2_interface_library",
     "ros2_interface_library",
 )
+load("@com_github_mvukov_rules_ros2//third_party:expand_template.bzl", "expand_template")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier_test")
 load("//bazel/cpp/uncrustify:defs.bzl", "uncrustify_test")
-load("//bazel/arduino:defs.bzl", "upload_arduino_sketch")
 load("@rules_yaml//:defs.bzl", "yaml_excerpt")
 
 buildifier_test(
@@ -54,23 +54,17 @@ alias(
     actual = "@com_github_mvukov_rules_ros2//ros2:ros2_param",
 )
 
-# Messages
-filegroup(
-    name = "ros_messages",
-    srcs = ["msg/CANMessage.msg"],
-    visibility = ["//visibility:public"],
-)
-
-genrule(
-    name = "test",
-    outs = ["test.txt"],
-    cmd = "touch $@",
-)
-
 # Config
 filegroup(
     name = "project_config",
     srcs = ["config/config.yaml"],
+    visibility = ["//visibility:public"],
+)
+
+# Messages
+filegroup(
+    name = "ros_messages",
+    srcs = ["msg/CANMessage.msg"],
     visibility = ["//visibility:public"],
 )
 
@@ -92,8 +86,20 @@ py_ros2_interface_library(
 )
 
 filegroup(
-    name = "aarch64_launcher_template",
+    name = "launcher_template",
     srcs = ["support/tools/launch_package.py.template"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "upload_sketch_template",
+    srcs = ["support/tools/upload_arduino_sketch.sh.template"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "sam_platform_patch",
+    srcs = ["//bazel/patches:platform.txt"],
     visibility = ["//visibility:public"],
 )
 
@@ -114,13 +120,54 @@ filegroup(
     srcs = ["arduino/micro_ros_publisher/micro_ros_publisher.ino"],
 )
 
-upload_arduino_sketch(
-    name = "upload_sketch",
-    config = ":arduino_config_data",
-    libraries = [
-        "@com_github_micro_ros_micro_ros_arduino//:micro_ros_arduino_zip",
-        #"https://github.com/micro-ROS/micro_ros_arduino.git",
-    ],
-    sketch = ":micro_ros_publisher_ino",
+CONFIG = ":arduino_config_data"
+
+SKETCH = ":micro_ros_publisher_ino"
+
+LIBRARIES = [
+    "@com_github_henriksod_micro_ros_arduino-cortex_m3-arm-none-eabi-gcc-7-2017q4//:micro_ros_arduino_zip",
+]
+
+LOCAL_LIBRARIES = [lib for lib in LIBRARIES if lib.startswith(("@", "//", ":")) or lib.endswith(".zip")]
+
+expand_template(
+    name = "upload_sketch_script",
+    out = "upload_sketch.sh",
+    data = [
+        CONFIG,
+        SKETCH,
+    ] + LOCAL_LIBRARIES,
+    is_executable = True,
+    substitutions = {
+        "@@@CONFIG@@@": "$(rootpath {})".format(CONFIG),
+        "@@@SKETCH@@@": "$(rootpath {})".format(SKETCH),
+        "@@@LIBRARIES@@@": " ".join(["$(rootpath {})".format(lib) if (lib.startswith(("@", "//", ":")) or lib.endswith(".zip")) else lib for lib in LIBRARIES]),
+    },
+    template = ":upload_sketch_template",
     visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "upload_sketch_packed",
+    srcs = [
+        ":sam_platform_patch",
+        ":upload_sketch_script",
+        "@com_github_arduino_arduino_cli//:arduino_cli_install",
+        CONFIG,
+        SKETCH,
+    ] + LOCAL_LIBRARIES,
+    visibility = ["//visibility:public"],
+)
+
+sh_binary(
+    name = "upload_sketch",
+    srcs = [":upload_sketch_script"],
+    data = [
+        CONFIG,
+        SKETCH,
+    ] + [lib for lib in LIBRARIES if lib.startswith(("@", "//", ":"))],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_arduino_arduino_cli//:arduino_cli_install",
+    ],
 )

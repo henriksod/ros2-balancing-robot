@@ -3,7 +3,7 @@
 This is a testbed for my balancing robot, using ROS2 and Bazel.
 
 The hardware can be reduced to the following components:
-- Raspberry PI 4 Model B (overclocked)
+- Raspberry PI 4 Model B (aarch64, Raspberry PI OS Bullseye 64bit)
 - Raspberry PI Camera V2
 - Arduino Due ARM Cortex M3
 - 2x NEMA17 Stepper motors
@@ -25,6 +25,12 @@ sudo apt install docker-ce python3 python3-pip
 ```
 
 Bazel is run via a [dazel](https://github.com/nadirizr/dazel) container.
+
+Ensure arduino is installed on the raspberry pi:
+
+```
+sudo apt install arduino
+```
 
 ## Entrypoint
 
