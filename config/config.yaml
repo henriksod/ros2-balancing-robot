@@ -6,7 +6,7 @@ remote:
   identity_file: ~/.ssh/id_rsa
 arduino:
   serial: '/dev/ttyACM0'
-  platform: 'arduino:sam:arduino_due_x_dbg'
+  platform: 'per1234:sam:arduino_due_x_dbg'
 nodes:
   serial_can_logger:
     log_file: 'logs/serial_can_logger/data.asc'

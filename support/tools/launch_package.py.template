@@ -35,7 +35,7 @@ PYTHON_DEPS = [
     "ros2cli/ros2pkg",
     "ros2_launch_ros/ros2launch",
 ]
-PYTHON_BINARY = "rules_ros2_python_aarch64-unknown-linux-gnu/bin/python3"
+PYTHON_BINARY = "rules_ros2_python_@@@PYTHON_PLATFORM@@@/bin/python3"
 
 
 def Deduplicate(items):

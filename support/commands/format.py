@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import click
+from loguru import logger
 from support import check_packages
 from support.utils.exec_subprocess import exec_subprocess
 from support.utils.staged_files import get_staged_files
@@ -51,10 +52,11 @@ def check(all_files):
         files = get_staged_files()
         python_files = [f for f in files if is_python_file(f)]
         cxx_files = [f for f in files if is_cxx_file(f)]
+        logger.info("Staged python files:\n%s" % ("\n".join(python_files)))
         cmd_flake8 = (
             f"{sys.executable} -m flake8 {' '.join(python_files)}" if python_files else "true"
         )
-        print(cmd_flake8)
+        logger.info("Staged cxx files:\n%s" % ("\n".join(cxx_files)))
         cmd_cpplint = (
             (
                 f"{sys.executable} -m cpplint --filter=-build/c++11 --linelength=100"
@@ -71,7 +73,7 @@ def check(all_files):
         )
 
     cmd_buildifier = f"{run_entrypoint} bazel run //:buildifier_check"
-    cmd_uncrustify = "true"  # f"{run_entrypoint}  bazel run //:uncrustify_check"
+    cmd_uncrustify = "true"  # f"{run_entrypoint} bazel run //:uncrustify_check"
     cmd_codespell = "codespell --count"
     exec_subprocess(
         "%s && %s && %s && %s && %s"
@@ -87,6 +89,7 @@ def check(all_files):
             "./run.py format fix"
         ),
         msg_on_success="Formatting checks passed!",
+        exit_on_failure=True,
     )
 
 
@@ -106,6 +109,7 @@ def fix(all_files):
     if not all_files:
         files = get_staged_files()
         python_files = [f for f in files if is_python_file(f)]
+        logger.info("Staged python files:\n%s" % ("\n".join(python_files)))
         cmd_black = (
             (f"{sys.executable} -m black --line-length=100" f" {' '.join(python_files)}")
             if python_files
@@ -115,7 +119,7 @@ def fix(all_files):
         cmd_black = f"{sys.executable} -m black --line-length=100 {os.getcwd()}"
 
     cmd_buildifier = f"{run_entrypoint} bazel run //:buildifier_fix"
-    cmd_uncrustify = "true"  # f"{run_entrypoint}  bazel run //:uncrustify_fix"
+    cmd_uncrustify = "true"  # f"{run_entrypoint} bazel run //:uncrustify_fix"
     exec_subprocess(
         "%s && %s && %s"
         % (
@@ -125,4 +129,5 @@ def fix(all_files):
         ),
         msg_on_error="Auto formatting failed!",
         msg_on_success="Auto formatting complete!",
+        exit_on_failure=True,
     )

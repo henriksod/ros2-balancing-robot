@@ -2,16 +2,21 @@ import subprocess
 from loguru import logger
 
 
-def exec_subprocess(cmd, msg_on_error="", msg_on_success=""):
+def exec_subprocess(cmd, msg_on_error="", msg_on_success="", exit_on_failure=False):
     try:
         output = subprocess.run(cmd, capture_output=True, shell=True, text=True)
-        logger.info(f"\n{output.stderr}")
-        logger.info(f"\n{output.stdout}")
+        if output.stderr:
+            logger.warning(f"\n{output.stderr}")
+        if output.stdout:
+            logger.info(f"\n{output.stdout}")
         if output.returncode != 0:
-            logger.error(msg_on_error)
-        else:
+            if msg_on_error:
+                logger.error(msg_on_error)
+            if exit_on_failure:
+                exit(output.returncode)
+        elif msg_on_success:
             logger.success(msg_on_success)
-        exit(output.returncode)
+        return output.stdout
     # TODO: Use proper exception
     except Exception as e:  # noqa
         logger.error(e)

@@ -4,6 +4,9 @@
 # Ignore logs dir
 /logs/
 
+# Ignore local .TODO file
+.TODO
+
 ### Bazel ###
 # Ignore Vim swap files.
 .*.swp
