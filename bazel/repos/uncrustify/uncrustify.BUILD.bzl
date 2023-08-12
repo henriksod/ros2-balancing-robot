@@ -1,3 +1,5 @@
+# Copyright (c) 2023, Henrik Söderlund
+
 """
 A module that builds the uncrustify formatting tool
 """
@@ -9,11 +11,13 @@ filegroup(
     srcs = glob(["**"]),
 )
 
+cache_entries = {
+    "CMAKE_POSITION_INDEPENDENT_CODE": "ON",  # Must be set!
+}
+
 cmake(
     name = "uncrustify_build",
-    cache_entries = {
-        "CMAKE_BUILD_TYPE": "Release",
-    },
+    cache_entries = cache_entries,
     lib_source = ":all_srcs",
     out_binaries = ["uncrustify"],
 )
@@ -25,7 +29,7 @@ sh_library(
 
 sh_binary(
     name = "uncrustify",
-    srcs = ["@balancing_robot//bazel/cpp/uncrustify:exec.sh"],
+    srcs = ["@balancing_robot//bazel/repos/uncrustify:exec.sh"],
     deps = [":uncrustify_build_sh"],
     visibility = ["//visibility:public"],
 )

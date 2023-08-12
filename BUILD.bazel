@@ -1,3 +1,5 @@
+# Copyright (c) 2023, Henrik Söderlund
+
 load(
     "@com_github_mvukov_rules_ros2//ros2:interfaces.bzl",
     "cpp_ros2_interface_library",
@@ -7,7 +9,6 @@ load(
 load("@com_github_mvukov_rules_ros2//third_party:expand_template.bzl", "expand_template")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier_test")
-load("//bazel/cpp/uncrustify:defs.bzl", "uncrustify_test")
 load("@rules_yaml//:defs.bzl", "yaml_excerpt")
 
 buildifier_test(
@@ -20,15 +21,6 @@ buildifier_test(
 buildifier_test(
     name = "buildifier_fix",
     mode = "fix",
-)
-
-uncrustify_test(
-    name = "uncrustify_check",
-    check = True,
-)
-
-uncrustify_test(
-    name = "uncrustify_fix",
 )
 
 compile_pip_requirements(
@@ -111,21 +103,28 @@ yaml_excerpt(
 )
 
 filegroup(
+    name = "arduino_config",
+    srcs = [":arduino_config_data"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
     name = "blink_ino",
-    srcs = ["arduino/blink/blink.ino"],
+    srcs = ["//arduino:blink/blink.ino"],
 )
 
 filegroup(
     name = "micro_ros_publisher_ino",
-    srcs = ["arduino/micro_ros_publisher/micro_ros_publisher.ino"],
+    srcs = ["//arduino:micro_ros_publisher/micro_ros_publisher.ino"],
 )
 
-CONFIG = ":arduino_config_data"
+CONFIG = ":arduino_config"
 
 SKETCH = ":micro_ros_publisher_ino"
 
 LIBRARIES = [
     "@com_github_henriksod_micro_ros_arduino-cortex_m3-arm-none-eabi-gcc-7-2017q4//:micro_ros_arduino_zip",
+    "//arduino/lib:robot_constants_zip",
 ]
 
 LOCAL_LIBRARIES = [lib for lib in LIBRARIES if lib.startswith(("@", "//", ":")) or lib.endswith(".zip")]

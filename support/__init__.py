@@ -1,3 +1,5 @@
+# Copyright (c) 2023, Henrik Söderlund
+
 import sys
 import pkg_resources
 import subprocess

@@ -1,0 +1,13 @@
+diff --git a/repositories/spdlog.BUILD.bazel b/repositories/spdlog.BUILD.bazel
+index 75c3574..2e74521 100644
+--- a/repositories/spdlog.BUILD.bazel
++++ b/repositories/spdlog.BUILD.bazel
+@@ -12,7 +12,7 @@ cc_library(
+     ) + ["include/spdlog/fmt/fmt.h"],
+     hdrs = glob(
+         ["include/**/*.h"],
+-        exclude = ["include/spdlog/fmt/*.h"],
++        exclude = ["include/spdlog/fmt/fmt.h"],
+     ),
+     copts = CPP_COPTS + ["-w"],
+     defines = [

@@ -1,23 +1,38 @@
-import subprocess
+# Copyright (c) 2023, Henrik Söderlund
+
+import sys
+
+from subprocess import Popen, PIPE, CalledProcessError
 from loguru import logger
 
 
+def _run_command(cmd, cwd="."):
+    if isinstance(cmd, str):
+        cmd = cmd.split()
+    logger.debug(" ".join(cmd))
+    popen = Popen(cmd, cwd=cwd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    for stdout_line in iter(popen.stdout.readline, ""):
+        yield stdout_line
+    popen.stdout.close()
+    _, err = popen.communicate()
+    return_code = popen.wait()
+    if return_code:
+        logger.error(err)
+        raise CalledProcessError(return_code, cmd, stderr=err)
+
+
 def exec_subprocess(cmd, msg_on_error="", msg_on_success="", exit_on_failure=False):
+    out = ""
     try:
-        output = subprocess.run(cmd, capture_output=True, shell=True, text=True)
-        if output.stderr:
-            logger.warning(f"\n{output.stderr}")
-        if output.stdout:
-            logger.info(f"\n{output.stdout}")
-        if output.returncode != 0:
-            if msg_on_error:
-                logger.error(msg_on_error)
-            if exit_on_failure:
-                exit(output.returncode)
-        elif msg_on_success:
+        for line in _run_command(cmd):
+            out += line
+            sys.stdout.write(line)
+        if msg_on_success:
             logger.success(msg_on_success)
-        return output.stdout
-    # TODO: Use proper exception
-    except Exception as e:  # noqa
+    except CalledProcessError as e:
         logger.error(e)
-        exit()
+        if msg_on_error:
+            logger.error(msg_on_error)
+        if exit_on_failure:
+            raise e
+    return out

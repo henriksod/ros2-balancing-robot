@@ -7,6 +7,9 @@
 # Ignore local .TODO file
 .TODO
 
+*.tar.gz
+*.pickle
+
 ### Bazel ###
 # Ignore Vim swap files.
 .*.swp

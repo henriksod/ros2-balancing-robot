@@ -1,3 +1,5 @@
+# Copyright (c) 2023, Henrik Söderlund
+
 import os
 import sys
 import click

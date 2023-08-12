@@ -1,22 +1,15 @@
+# Copyright (c) 2023, Henrik Söderlund
+
 import os
+
 import sys
 import click
 import json
 import tarfile
 import shutil
 from loguru import logger
-from itertools import product
 from support import check_packages
 from support.utils.exec_subprocess import exec_subprocess
-
-
-SUPPORTED_ARCHITECTURES = ["x86_64", "aarch64"]
-SUPPORTED_COMPILERS = ["gcc", "clang"]
-SUPPORTED_CONFIGS = {
-    (a, c): f"{a}_linux_{c}" for a, c in list(product(SUPPORTED_ARCHITECTURES, SUPPORTED_COMPILERS))
-}
-
-PYTHON_PLATFORM_MAPPING = {"aarch64": "aarch64-unknown-linux-gnu"}
 
 
 def make_executable(path):
@@ -27,37 +20,32 @@ def make_executable(path):
 
 @click.command()
 @click.option(
-    "--rule",
-    type=str,
-    help="The name of the bazel rule to deploy (found in BUILD.bazel under deployment/)",
+    "--install",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Install the deployed software on target system.",
 )
 @click.option(
-    "--arch",
-    default="x86_64",
-    type=str,
-    help="Target architecture",
+    "--debug",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Compile in debug mode.",
 )
-@click.option(
-    "--compiler",
-    default="gcc",
+@click.argument(
+    "rule_name",
     type=str,
-    help="Compiler to use for deployment",
+    required=1,
 )
-def cli(rule, arch, compiler):
-    """Deploys ROS2 node composition to target host"""
+def cli(rule_name, install, debug):
+    """Deploys packed ROS2 node composition to target host
+
+    RULE_NAME: The name of the bazel rule to deploy (found in BUILD.bazel under deployment/)
+    """
 
     run_entrypoint = os.environ["ROS2_BALANCING_ROBOT_ENTRYPOINT"]
     project_config = json.loads(os.environ["ROS2_BALANCING_ROBOT_CONFIG"])
-
-    if arch not in SUPPORTED_ARCHITECTURES:
-        msg = f"Architecture {arch} is not supported!" f" (not one of {SUPPORTED_ARCHITECTURES})"
-        logger.error(msg)
-        raise AssertionError(msg)
-
-    if compiler not in SUPPORTED_COMPILERS:
-        msg = f"Compiler {compiler} is not supported!" f" (not one of {SUPPORTED_COMPILERS})"
-        logger.error(msg)
-        raise AssertionError(msg)
 
     # Look for required libraries
     check_packages("scp")
@@ -66,10 +54,22 @@ def cli(rule, arch, compiler):
     logger.info("Getting commit hash...")
     commit_hash = exec_subprocess("git rev-parse --short HEAD").rstrip("\n")
 
-    # Build package
-    config = SUPPORTED_CONFIGS[(arch, compiler)]
+    # Run zephyr setup and compile RTOS project
+    logger.info("Compiling Zephyr bin file...")
     exec_subprocess(
-        f"{run_entrypoint} bazel build --config={config} //deployment:{rule}",
+        f"{run_entrypoint} bazel run @com_github_zephyrproject_rtos_zephyr//:setup_build",
+        msg_on_error="Compiling RTOS project failed!",
+        msg_on_success="Compiling RTOS project succeeded!",
+        exit_on_failure=True,
+    )
+
+    # Build package
+    logger.info(f"Building package target {rule_name}...")
+    exec_subprocess(
+        (
+            f"{run_entrypoint} bazel build //deployment:{rule_name} --config=aarch64_linux_gcc"
+            + (" --compilation_mode=dbg" if debug else "")
+        ),
         msg_on_error="Building deployment target failed!",
         msg_on_success="Building deployment target succeeded!",
         exit_on_failure=True,
@@ -83,7 +83,7 @@ def cli(rule, arch, compiler):
     if os.path.isdir(extraction_dir):
         shutil.rmtree(extraction_dir)
     os.mkdir(extraction_dir)
-    with tarfile.open(f"{package_dir}/serial_can_receiver_example.tar", "r") as tarball:
+    with tarfile.open(f"{package_dir}/{rule_name}.tar", "r") as tarball:
         tarball.extractall(extraction_dir)
 
     # Read the launch script template
@@ -91,8 +91,8 @@ def cli(rule, arch, compiler):
         filedata = file.read()
 
     # Replace the target string
-    filedata = filedata.replace("@@@LAUNCHER_NAME@@@", f"{rule}")
-    filedata = filedata.replace("@@@PYTHON_PLATFORM@@@", f"{PYTHON_PLATFORM_MAPPING[arch]}")
+    filedata = filedata.replace("@@@LAUNCHER_NAME@@@", f"{rule_name}")
+    filedata = filedata.replace("@@@PYTHON_PLATFORM@@@", "aarch64-unknown-linux-gnu")
 
     # Create the launch file
     with open(f"{extraction_dir}/launch_package", "w") as file:
@@ -100,7 +100,7 @@ def cli(rule, arch, compiler):
     make_executable(f"{extraction_dir}/launch_package")
 
     # Zip the directory
-    tarball_deliverable = f"{extraction_dir}/serial_can_receiver_example.tar.gz"
+    tarball_deliverable = f"{extraction_dir}/{rule_name}_example.tar.gz"
     with tarfile.open(tarball_deliverable, "w:gz") as tarball:
         tarball.add(extraction_dir, arcname=f"balancing_robot-{commit_hash}")
 
@@ -139,11 +139,19 @@ def cli(rule, arch, compiler):
 
     logger.info("Unpacking delivery at host...")
 
+    pkg_name = f"balancing_robot-{commit_hash}"
     _, _, ssh_stderr = ssh.exec_command(
-        f"tar -xzvf ~/balancing_robot-{commit_hash}.tar.gz -C ~"
-        f" && sudo rm -rf /opt/balancing_robot-{commit_hash}"
-        f" && sudo mv ~/balancing_robot-{commit_hash} /opt/"
-        f" && sudo ln -sf /opt/balancing_robot-{commit_hash}/ /opt/balancing_robot"
+        f"tar -xzvf ~/{pkg_name}.tar.gz -C ~"
+        f" && sudo rm ~/{pkg_name}.tar.gz"
+        f" && tar -xvf ~/{pkg_name}/deployment/bossac.tar -C ~/{pkg_name}/deployment"
+        f" && sudo rm ~/{pkg_name}/deployment/bossac.tar"
+        f" && tar -xvf ~/{pkg_name}/deployment/zephyr_sdk_aarch64.tar -C ~/{pkg_name}/deployment"
+        f" && sudo rm ~/{pkg_name}/deployment/zephyr_sdk_aarch64.tar"
+        f" && tar -xvf ~/{pkg_name}/deployment/zephyr/zephyr_project.tar.gz -C ~/{pkg_name}/deployment/zephyr"
+        f" && sudo rm ~/{pkg_name}/deployment/zephyr/zephyr_project.tar.gz"
+        f" && sudo rm -rf /opt/{pkg_name}"
+        f" && sudo mv ~/{pkg_name} /opt/"
+        f" && sudo ln -sf /opt/{pkg_name} /opt/balancing_robot"
     )
     ssh_stderr_msg = ssh_stderr.read()
     if ssh_stderr_msg:
@@ -151,3 +159,27 @@ def cli(rule, arch, compiler):
         exit()
 
     logger.success("Successfully deployed to target!")
+
+    if install:
+        logger.info("Installing software on target...")
+        zephyr_bin_path = (
+            "./deployment/zephyr/external/com_github_zephyrproject_rtos_zephyr/build/zephyr"
+        )
+        _, _, ssh_stderr = ssh.exec_command(
+            " ".join(
+                [
+                    f"cd /opt/balancing_robot-{commit_hash}",
+                    f"&& stty -F {project_config['arduino']['serial']} raw ispeed 1200 ospeed 1200",
+                    "cs8 -cstopb ignpar eol 255 eof 255",
+                    "&& ./deployment/external/com_github_shumatech_bossa/bossac",
+                    f"--port={project_config['arduino']['serial']} -e -w -b",
+                    f"{zephyr_bin_path}/zephyr.bin -R",
+                ]
+            )
+        )
+        ssh_stderr_msg = ssh_stderr.read()
+        if ssh_stderr_msg:
+            logger.error(ssh_stderr_msg)
+            exit()
+
+        logger.success("Successfully installed software on target!")

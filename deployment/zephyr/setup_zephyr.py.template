@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2023, Henrik Söderlund
+
+
+import os
+import sys
+import wget
+import tarfile
+import subprocess
+import platform
+from loguru import logger
+
+APP_DIR = "@@@APP_PATH@@@"
+
+
+def run_command(cmd, cwd="."):
+    for line in _run_command(cmd, cwd):
+        sys.stdout.write(line)
+
+
+def _run_command(cmd, cwd="."):
+    if isinstance(cmd, str):
+        cmd = cmd.split()
+    logger.debug(" ".join(cmd))
+    popen = subprocess.Popen(
+        cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+    )
+    for stdout_line in iter(popen.stdout.readline, ""):
+        yield stdout_line
+    popen.stdout.close()
+    _, err = popen.communicate()
+    return_code = popen.wait()
+    if return_code:
+        logger.error(err)
+        raise subprocess.CalledProcessError(return_code, cmd, stderr=err)
+
+
+if __name__ == "__main__":
+    logger.remove()
+    logger.add(sys.stderr, colorize=True, level="DEBUG")
+
+    arch = platform.processor()
+
+    zephyr_sdk_dir = f"external/com_github_zephyrproject_rtos_sdk_ng_{arch}"
+    zephyr_dir = "external/com_github_zephyrproject_rtos_zephyr"
+
+    # Setup sdk
+    if not os.path.isdir(f"{zephyr_sdk_dir}/arm-zephyr-eabi"):
+        dl_toolchain_filename = f"toolchain_linux-{arch}_arm-zephyr-eabi.tar.xz"
+        toolchain_filename = dl_toolchain_filename
+        with open(f"{zephyr_sdk_dir}/sdk_version") as f:
+            sdk_version = f.readline().rstrip()
+        dl_rel_base = (
+            f"https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v{sdk_version}"
+        )
+        toolchain_uri = f"{dl_rel_base}/{toolchain_filename}"
+        if not os.path.isfile(f"{zephyr_sdk_dir}/{toolchain_filename}"):
+            wget.download(toolchain_uri, out=f"{zephyr_sdk_dir}/{toolchain_filename}")
+        with tarfile.open(f"{zephyr_sdk_dir}/{toolchain_filename}") as tarball:
+            tarball.extractall(f"{zephyr_sdk_dir}")
+    run_command("./setup.sh -t arm-zephyr-eabi", cwd=zephyr_sdk_dir)
+    run_command("cmake -P cmake/zephyr_sdk_export.cmake", cwd=zephyr_sdk_dir)
+
+    # Init west
+    try:
+        run_command(f"{sys.executable} -m west init", cwd=zephyr_dir)
+    except subprocess.CalledProcessError as e:
+        if "already initialized" not in str(e.stderr):
+            raise e
+
+    # Update west
+    run_command(f"{sys.executable} -m west update", cwd=zephyr_dir)
+
+    # Set up cmake boilerplate
+    run_command(f"{sys.executable} -m west zephyr-export", cwd=zephyr_dir)
+
+    # Install python package requirements
+    run_command(f"{sys.executable} -m pip install -r scripts/requirements.txt", cwd=zephyr_dir)
+
+    # Build project
+    run_command(
+        f"{sys.executable} -m west build -b arduino_due {os.path.realpath(APP_DIR)}", cwd=zephyr_dir
+    )
+
+    # Package output bin file
+    out_path = f"{os.environ.get('BUILD_WORKSPACE_DIRECTORY')}" "/deployment/zephyr"
+    with tarfile.open(f"{out_path}/zephyr_project.tar.gz", "w:gz") as tarball:
+        tarball.add(f"{zephyr_dir}/build/zephyr/zephyr.bin")
+        tarball.add(f"{zephyr_dir}/build/zephyr/zephyr.elf")
+        tarball.add(f"{zephyr_dir}/build/zephyr/zephyr.dts")
+
+    logger.success(f"Zephyr bin file and devicetree generated and stored in {out_path}!")

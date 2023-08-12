@@ -1,3 +1,5 @@
+# Copyright (c) 2023, Henrik Söderlund
+
 import rclpy
 from rclpy.node import Node
 

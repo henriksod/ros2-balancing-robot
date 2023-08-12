@@ -3,7 +3,7 @@ ARG UID
 ARG GID
 ARG USER
 
-ENV BAZEL_VERSION 6.2.1
+ENV BAZEL_VERSION 6.3.0
 
 # Update the package list, install sudo, create a non-root user, and grant password-less sudo permissions
 RUN apt-get update \
@@ -16,7 +16,11 @@ RUN apt-get update \
 RUN apt-get install -y --no-install-recommends python3 python3-pip python3-dev
 
 # Install cpp compilers and dependencies
-RUN apt-get install -y --no-install-recommends gcc g++ clang cmake lld build-essential libncurses5
+RUN apt-get install -y --no-install-recommends gcc g++ clang gdb lld libncurses5
+RUN apt-get install -y --no-install-recommends build-essential cmake ninja-build
+
+# Install extra
+RUN apt-get install -y --no-install-recommends wget git
 
 # Creating the man pages directory to deal with the slim variants not having it.
 RUN apt-get install -y --no-install-recommends ca-certificates curl gnupg patch \

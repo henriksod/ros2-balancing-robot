@@ -1,3 +1,5 @@
+# Copyright (c) 2023, Henrik Söderlund
+
 load("@com_github_mvukov_rules_ros2//ros2:py_defs.bzl", "ros2_py_binary")
 load("@balancing_robot_pip_deps//:requirements.bzl", "requirement")
 load("@rules_yaml//:defs.bzl", "yaml_excerpt")

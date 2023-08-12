@@ -1,0 +1,16 @@
+/*
+ * Copyright (c) 2023 Henrik Söderlund
+ */
+
+/ {
+     zephyr,user {
+        mot-enable-gpios = <&pioa 24 0x00>;
+        mot-ustep1-gpios = <&pioc 3 0x00>;
+        mot-ustep2-gpios = <&pioc 5 0x00>;
+        mot-ustep3-gpios = <&pioc 7 0x00>;
+
+        led1-gpios = <&piob 14 0x00>;
+        led2-gpios = <&pioc 12 0x00>;
+        led3-gpios = <&pioc 14 0x00>;
+     };
+};

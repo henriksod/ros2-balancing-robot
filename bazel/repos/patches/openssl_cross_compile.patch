@@ -1,0 +1,15 @@
+diff --git a/repositories/openssl.BUILD.bazel b/repositories/openssl.BUILD.bazel
+index d532b5b..77cb916 100644
+--- a/repositories/openssl.BUILD.bazel
++++ b/repositories/openssl.BUILD.bazel
+@@ -17,8 +17,9 @@ filegroup(
+ configure_make(
+     name = "openssl",
+     args = ["-j4"],
+-    configure_command = "config",
++    configure_command = "Configure",
+     configure_options = [
+         "no-shared",
+         "--libdir=lib",
++        "linux-aarch64",
+     ],

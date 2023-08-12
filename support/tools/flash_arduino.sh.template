@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# Copyright (c) 2023, Henrik Söderlund
+
+
+set -euo pipefail
+
+workdir=$pwd
+
+# Set up zephyr SDK
+#cd $pwd/deployment/external/com_github_zephyrproject_rtos_sdk_ng_aarch64 && ./setup.sh -t arm-zephyr-eabi
+
+# Flash firmware to Arduino
+config="$(pwd)/@@@CONFIG@@@"
+port=$(cat $config | grep -oP '(?<=serial: ).*')
+./external/com_github_shumatech_bossa/bossac -a -w -v --port=$port zephyr/external/com_github_zephyrproject_rtos_zephyr/build/zephyr/zephyr.bin
+
+# Find arduino-cli and install it if not found
+path="$(pwd)/bin/arduino-cli"
+if [[ ! -f "${path:-}" ]]; then
+  ./external/com_github_arduino_arduino_cli/install.sh
+  if [[ ! -f "${path:-}" ]]; then
+    echo >&2 "ERROR: could not look up the arduino-cli path"
+    exit 1
+  fi
+fi
+
+echo >&2 "INFO: Working directory $(pwd)"
+echo >&2 "INFO: Connected boards $($path board list)"
+
+# Parse config
+config="$(pwd)/@@@CONFIG@@@"
+platform=$(cat $config | grep -oP '(?<=platform: ).*')
+port=$(cat $config | grep -oP '(?<=serial: ).*')
+sketch="$(pwd)/@@@SKETCH@@@"
+arduino_dir="$($path config dump | grep -oP '(?<=data: )[a-zA-z\/.0-9-_]+')"
+
+# Install platform
+$path config init --overwrite
+$path core update-index --additional-urls https://per1234.github.io/ArduinoCore-sam/package_per1234_samarm64_index.json
+export ARDUINO_BOARD_MANAGER_ADDITIONAL_URLS=https://per1234.github.io/ArduinoCore-sam/package_per1234_samarm64_index.json
+$path core install $(echo $platform | grep -oP '(.*)(?=:)')
+
+# Patch SAM board
+sam_version="$($path core list | grep -oP '(?<=per1234:sam)\s*([0-9.a-zA-Z-]+)' | tr -d ' ')"
+sam_hardware_path="$arduino_dir/packages/per1234/hardware/sam/$sam_version"
+cp $(pwd)/bazel/patches/platform.txt $sam_hardware_path/platform.txt
+#curl https://raw.githubusercontent.com/micro-ROS/micro_ros_arduino/iron/extras/patching_boards/platform_arduinocore_sam.txt > $sam_hardware_path/platform.txt
+#sed -i 's/4.8.3-2014q1/7-2017q4/g' $sam_hardware_path/platform.txt
+
+# Install libraries
+# $path config set library.enable_unsafe_install true
+$path config dump > "arduino_cli_config.yaml"
+sed -i 's/enable_unsafe_install: false/enable_unsafe_install: true/g' arduino_cli_config.yaml
+libraries=("@@@LIBRARIES@@@")
+for i in $libraries; do
+  var=$i
+  echo >&2 "INFO: Installing library '$var'"
+  if [ "$(echo $var | grep -oP 'https://')" = "https://" ]; then
+      $path lib install --git-url --config-file "arduino_cli_config.yaml" $var
+  elif [ "$(echo $var | grep -oP '\.zip')" = ".zip" ]; then
+      $path lib install --zip-path --config-file "arduino_cli_config.yaml" "$(pwd)/$var"
+  else
+      $path lib install $var
+  fi
+done
+
+# Compile and upload
+$path compile --fqbn $platform $sketch -v
+$path upload -p $port --fqbn $platform $sketch

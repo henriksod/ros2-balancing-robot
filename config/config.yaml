@@ -1,3 +1,5 @@
+# Copyright (c) 2023, Henrik Söderlund
+
 remote:
   host_alias: robot
   host_name: 192.168.1.227
@@ -6,6 +8,7 @@ remote:
   identity_file: ~/.ssh/id_rsa
 arduino:
   serial: '/dev/ttyACM0'
+  baud_rate: '115200'
   platform: 'per1234:sam:arduino_due_x_dbg'
 nodes:
   serial_can_logger:

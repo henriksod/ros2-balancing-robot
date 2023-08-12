@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Copyright (c) 2023, Henrik Söderlund
+
+
 set -euo pipefail
 
 # Find arduino-cli and install it if not found
@@ -54,4 +57,4 @@ done
 
 # Compile and upload
 $path compile --fqbn $platform $sketch -v
-$path upload -p $port --fqbn $platform $sketch -v
+$path upload -p $port --fqbn $platform $sketch

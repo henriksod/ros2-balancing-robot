@@ -1,3 +1,5 @@
+# Copyright (c) 2023, Henrik Söderlund
+
 workspace(name = "balancing_robot")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -34,11 +36,23 @@ gcc_register_toolchain(
 http_archive(
     name = "com_github_mvukov_rules_ros2",
     patch_args = ["-p1"],
-    patches = ["//bazel/patches:cyclonedds_pic.patch"],
+    patches = ["//bazel/repos/patches:spdlog_fix.patch"],
+    #patches = ["//bazel/patches:cyclonedds_pic.patch", "//bazel/patches:test.patch"],
     # Here you can use e.g. sha256sum cli utility to compute the sha sum.
-    sha256 = "c1ff135dd1a6a5c518357285611b1c4de4af6eb9249bf007a21479e35b1a6006",
-    strip_prefix = "rules_ros2-89dd5fa0add476e85a438c8575f353ecf6162c57",
-    url = "https://github.com/mvukov/rules_ros2/archive/89dd5fa0add476e85a438c8575f353ecf6162c57.tar.gz",
+    #sha256 = "c1ff135dd1a6a5c518357285611b1c4de4af6eb9249bf007a21479e35b1a6006",
+    #strip_prefix = "rules_ros2-89dd5fa0add476e85a438c8575f353ecf6162c57",
+    #url = "https://github.com/mvukov/rules_ros2/archive/89dd5fa0add476e85a438c8575f353ecf6162c57.tar.gz",
+    sha256 = "0ffd8802b4915aa5c75db7187207a4746e5ad8a8079432d1e622e7bb251210cc",
+    strip_prefix = "rules_ros2-82aa24da167725c0ba1a8d069a58fed0245bd2fa",
+    url = "https://github.com/henriksod/rules_ros2/archive/82aa24da167725c0ba1a8d069a58fed0245bd2fa.tar.gz",
+)
+
+http_archive(
+    name = "fastrtps",
+    build_file = "@com_github_mvukov_rules_ros2//repositories:fastrtps.BUILD.bazel",
+    sha256 = "3fe8b9f67a13a5d2aa40c0bd10581bd90f0a192b39c71f92ee233ffe584d3374",
+    strip_prefix = "Fast-DDS-2.11.1",
+    url = "https://github.com/eProsima/Fast-DDS/archive/refs/tags/v2.11.1.tar.gz",
 )
 
 load("@com_github_mvukov_rules_ros2//repositories:repositories.bzl", "ros2_repositories")
@@ -166,45 +180,14 @@ http_archive(
     ],
 )
 
-# Get buildfarm targets
-http_archive(
-    name = "build_buildfarm",
-    sha256 = "8b77ebacaac93b12b7b1cc7ab3780e246e9f779555d906d00a701a1780e1c597",
-    strip_prefix = "bazel-buildfarm-2.4.0",
-    url = "https://github.com/bazelbuild/bazel-buildfarm/archive/refs/tags/2.4.0.tar.gz",
-)
-
-load("@build_buildfarm//:deps.bzl", "buildfarm_dependencies")
-
-buildfarm_dependencies()
-
-load("@build_buildfarm//:defs.bzl", "buildfarm_init")
-
-buildfarm_init()
-
 # Uncrustify, C/C++ code formatter
 http_archive(
     name = "com_github_uncrustify_uncrustify",
-    build_file = "//bazel/cpp/uncrustify:uncrustify.bzl",
+    build_file = "//bazel/repos/uncrustify:uncrustify.BUILD.bzl",
     sha256 = "414bbc9f7860eb18a53074f9af14ed04638a633b2216a73f2629291300d37c1b",
     strip_prefix = "uncrustify-uncrustify-0.77.1",
     url = "https://github.com/uncrustify/uncrustify/archive/refs/tags/uncrustify-0.77.1.tar.gz",
 )
-
-# Toolchain: aarch64-linux-gnueabihf
-#http_archive(
-#    name = "rpi_bazel",
-#    sha256 = "ef22526864f46d4bc42b09b421050697ebc1970f279f196b8f855048df6f3e3e",
-#    strip_prefix = "rpi_bazel-964b6feb8bb14b2a58876b406f17266538794c3a",
-#    url = "https://github.com/mjbots/rpi_bazel/archive/964b6feb8bb14b2a58876b406f17266538794c3a.zip",
-#)
-
-#load(
-#    "@rpi_bazel//tools/workspace:default.bzl",
-#    rpi_bazel_deps = "add_default_repositories",
-#)
-
-#rpi_bazel_deps()
 
 #########################################
 # Below are rules specific to this repo #
@@ -226,12 +209,87 @@ install_balancing_robot_pip_deps()
 # cpp serial source code repository
 http_archive(
     name = "com_github_wjwwood_serial",
-    build_file = "//bazel/cpp:serial.bzl",
+    build_file = "//bazel/repos:serial.BUILD.bzl",
     patch_args = ["-p1"],
-    patches = ["//bazel/patches:wjwwood_serial_fix_warnings.patch"],
+    patches = ["//bazel/repos/patches:wjwwood_serial_fix_warnings.patch"],
     sha256 = "0c2a789ce485a83ed640c777a7d1cd1256976890ece4c126f93751a08643917a",
     strip_prefix = "serial-1.2.1",
     url = "https://github.com/wjwwood/serial/archive/refs/tags/1.2.1.tar.gz",
+)
+
+###########
+# Zephyr  #
+###########
+
+http_archive(
+    name = "com_github_zephyrproject_rtos_sdk_ng_aarch64",
+    build_file = "//bazel/repos:zephyr_sdk.BUILD.bzl",
+    sha256 = "f34078627541b548310819968994559e05111733f93a7814c5cf9bc53b3a524a",
+    strip_prefix = "zephyr-sdk-0.16.1",
+    url = "https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.1/zephyr-sdk-0.16.1_linux-aarch64_minimal.tar.xz",
+)
+
+http_archive(
+    name = "com_github_zephyrproject_rtos_sdk_ng_x86_64",
+    build_file = "//bazel/repos:zephyr_sdk.BUILD.bzl",
+    sha256 = "46449fdb0a69f83ec707dbc55a8d23ea44860f0a2bca9097442fc3f2f16b96c7",
+    strip_prefix = "zephyr-sdk-0.16.1",
+    url = "https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.1/zephyr-sdk-0.16.1_linux-x86_64_minimal.tar.xz",
+)
+
+http_archive(
+    name = "com_github_zephyrproject_rtos_zephyr",
+    build_file = "//bazel/repos:zephyr.BUILD.bzl",
+    sha256 = "a066cb7e975f11f1f34d43807965f28ab300625dd0793688c134f4a0e6adbb4b",
+    strip_prefix = "zephyr-3.4.0",
+    url = "https://github.com/zephyrproject-rtos/zephyr/archive/refs/tags/v3.4.0.tar.gz",
+)
+
+###########
+#  Zenoh  #
+###########
+
+http_archive(
+    name = "com_github_eclipse_zenoh_zenoh",
+    build_file = "//bazel/repos:zenoh.BUILD.bzl",
+    sha256 = "bbd3387b02ed107b8fcbf971ecdee488b3a3f51bdeb7678ac0db6987bd5f04fa",
+    strip_prefix = "zenoh-0.10.0-dev",
+    url = "https://github.com/eclipse-zenoh/zenoh/archive/refs/tags/0.10.0-dev.tar.gz",
+)
+
+http_archive(
+    name = "com_github_eclipse_zenoh_zenoh_plugin_dds_aarch64",
+    build_file = "//bazel/repos:zenoh_bridge_dds.BUILD.bzl",
+    sha256 = "e75b2c9d856bd4b604fef1ec9a8311222743079867d23b9cf446cdfe9491c049",
+    #strip_prefix = "zenoh-bridge-dds-0.7.2-rc",
+    url = "https://github.com/eclipse-zenoh/zenoh-plugin-dds/releases/download/0.7.2-rc/zenoh-bridge-dds-0.7.2-rc-aarch64-unknown-linux-gnu.zip",
+)
+
+http_archive(
+    name = "com_github_eclipse_zenoh_zenoh_plugin_dds_x86_64",
+    build_file = "//bazel/repos:zenoh_bridge_dds.BUILD.bzl",
+    sha256 = "dcfd008a92c784e89ef2ee1ddf1831a34e7581350276a169971c2b00f4566997",
+    #strip_prefix = "zenoh-bridge-dds-0.7.2-rc",
+    url = "https://github.com/eclipse-zenoh/zenoh-plugin-dds/releases/download/0.7.2-rc/zenoh-bridge-dds-0.7.2-rc-x86_64-unknown-linux-gnu.zip",
+)
+
+http_archive(
+    name = "com_github_eclipse_zenoh_zenoh_pico",
+    build_file = "//bazel/repos:zenoh_pico.BUILD.bzl",
+    sha256 = "59abb5e8d9d4d8b59cc8a25a9b7198bc421cb79a16b75c9af15e9f0013f4aac8",
+    strip_prefix = "zenoh-pico-0.10.0-dev",
+    url = "https://github.com/eclipse-zenoh/zenoh-pico/archive/refs/tags/0.10.0-dev.tar.gz",
+)
+
+###########
+#  BOSSA  #
+###########
+http_archive(
+    name = "com_github_shumatech_bossa",
+    build_file = "//bazel/repos:bossa.BUILD.bzl",
+    sha256 = "80f9033b614676965ccbd16fa892bfe4fa99a7510120f9d32f416447bff42a47",
+    strip_prefix = "BOSSA-5cae9fee241bd3c95c197b2464e9b83240994c43",
+    url = "https://github.com/shumatech/BOSSA/archive/5cae9fee241bd3c95c197b2464e9b83240994c43.tar.gz",
 )
 
 ###########
@@ -241,7 +299,7 @@ http_archive(
 # arduino-cli
 http_archive(
     name = "com_github_arduino_arduino_cli",
-    build_file = "//bazel/arduino:arduino_cli.bzl",
+    build_file = "//bazel/repos/arduino_cli:arduino_cli.BUILD.bzl",
     #patch_args = ["-p1"],
     #patches = ["//bazel/patches:remove_filename_spaces.patch"],
     #sha256 = "ef9a39fc965e99410e2825211f95836dab9f1f6028dc35f1178a148a42cf8836",
@@ -252,11 +310,38 @@ http_archive(
     url = "https://github.com/arduino/arduino-cli/archive/a7f0de42fa04243b948c14741ee06f30098475ff.tar.gz",
 )
 
-# micro-ros-agent
+# micro-xrce-dds-agent
+http_archive(
+    name = "com_github_eprosima_micro_xrce_dds_agent",
+    build_file = "//bazel/repos:micro_xrce_dds_agent.BUILD.bzl",
+    sha256 = "eae855e32fba142ffea8d91970aa0b5f14745293eb4ad03c9207b4e0ddbd5576",
+    strip_prefix = "Micro-XRCE-DDS-Agent-2.4.1",
+    url = "https://github.com/eProsima/Micro-XRCE-DDS-Agent/archive/refs/tags/v2.4.1.tar.gz",
+)
+
+# micro-ros-arduino
 http_archive(
     name = "com_github_henriksod_micro_ros_arduino-cortex_m3-arm-none-eabi-gcc-7-2017q4",
-    build_file = "//bazel/arduino:micro_ros_arduino.bzl",
-    sha256 = "e9aba330222c346e0fb5241ddb4347306a045ca7ed8031fd7a259f492028a6b1",
-    strip_prefix = "micro_ros_arduino-cortex_m3-arm-none-eabi-gcc-7-2017q4-a476b2c6ee8001af20acd1aa56fc609927d57efd",
-    url = "https://github.com/henriksod/micro_ros_arduino-cortex_m3-arm-none-eabi-gcc-7-2017q4/archive/a476b2c6ee8001af20acd1aa56fc609927d57efd.tar.gz",
+    build_file = "//bazel/repos:micro_ros_arduino.BUILD.bzl",
+    sha256 = "83d865f7af6a5ce2f718780286ef8a4e78b33bf47eb8ae34e11809d0bcafcf70",
+    strip_prefix = "micro_ros_arduino-cortex_m3-arm-none-eabi-gcc-7-2017q4-2.0.7-humble",
+    url = "https://github.com/henriksod/micro_ros_arduino-cortex_m3-arm-none-eabi-gcc-7-2017q4/archive/refs/tags/v2.0.7-humble.tar.gz",
+)
+
+# micro-ros-msgs
+http_archive(
+    name = "com_github_micro_ros_micro_ros_msgs",
+    build_file = "//bazel/repos:micro_ros_msgs.BUILD.bzl",
+    sha256 = "fa574bf2dc08ecd60896d830fb8b1ee5232cd59a93dbc8ffd2a058afae8b80ca",
+    strip_prefix = "micro_ros_msgs-3.0.0",
+    url = "https://github.com/micro-ROS/micro_ros_msgs/archive/refs/tags/3.0.0.tar.gz",
+)
+
+# micro-ros-agent
+http_archive(
+    name = "com_github_micro_ros_micro_ros_agent",
+    build_file = "//bazel/repos:micro_ros_agent.BUILD.bzl",
+    sha256 = "08d37137f4d2d5d29e535bcce3b72b42c70c785c59544fec8f90c7615feb1058",
+    strip_prefix = "micro-ROS-Agent-3.0.5",
+    url = "https://github.com/micro-ROS/micro-ROS-Agent/archive/refs/tags/3.0.5.tar.gz",
 )

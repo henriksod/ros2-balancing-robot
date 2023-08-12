@@ -1,10 +1,60 @@
+# Copyright (c) 2023, Henrik Söderlund
+
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+
+package(default_visibility = ["//visibility:public"])
+
+pkg_tar(
+    name = "zephyr_sdk_aarch64",
+    srcs = ["@com_github_zephyrproject_rtos_sdk_ng_aarch64//:all_srcs"],
+    include_runfiles = True,
+    strip_prefix = "/",
+)
+
+pkg_tar(
+    name = "bossac",
+    srcs = [
+        "@com_github_shumatech_bossa//:bossac",
+    ],
+    include_runfiles = True,
+    strip_prefix = "/",
+)
 
 pkg_tar(
     name = "serial_can_receiver_example",
     srcs = [
         "//:upload_sketch_packed",
         "//launch:serial_can_receiver_example",
+    ],
+    include_runfiles = True,
+    strip_prefix = "/",
+)
+
+pkg_tar(
+    name = "micro_ros_agent_example",
+    srcs = [
+        "//:upload_sketch_packed",
+        "//launch:micro_ros_agent_example",
+    ],
+    include_runfiles = True,
+    strip_prefix = "/",
+)
+
+pkg_tar(
+    name = "chatter",
+    srcs = [
+        "//launch:chatter",
+    ],
+    include_runfiles = True,
+    strip_prefix = "/",
+)
+
+pkg_tar(
+    name = "zephyr_hello_world",
+    srcs = [
+        ":bossac",
+        ":zephyr_sdk_aarch64",
+        "//deployment/zephyr:zephyr_project",
     ],
     include_runfiles = True,
     strip_prefix = "/",

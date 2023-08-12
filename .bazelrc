@@ -22,13 +22,19 @@ build --heap_dump_on_oom
 # Speed up all builds by not checking if output files have been modified.
 build --noexperimental_check_output_files
 
+# Use fastdds as ros2 middleware
+build --@com_github_mvukov_rules_ros2//ros2:dds_vendor=fastdds
+build --@fastrtps//:enable_shm=True
+
 # Don't bother building targets which aren't dependencies of the tests.
 # test --build_tests_only
 
 test --sandbox_default_allow_network=false
 test --test_output=errors
 
+# Debug config, invoke Bazel with `--config=debug`.
 build:debug --verbose_failures --sandbox_debug --toolchain_resolution_debug
+build:debug --compilation_mode=dbg
 
 # To use a clang compiler, invoke Bazel with `--config=clang`.
 build:clang --repo_env=CC=clang

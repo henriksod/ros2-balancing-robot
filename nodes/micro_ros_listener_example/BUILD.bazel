@@ -1,0 +1,14 @@
+# Copyright (c) 2023, Henrik Söderlund
+
+load("@com_github_mvukov_rules_ros2//ros2:cc_defs.bzl", "ros2_cpp_binary")
+
+ros2_cpp_binary(
+    name = "micro_ros_listener_example_task",
+    srcs = ["task.cc"],
+    linkstatic = False,
+    visibility = ["//visibility:public"],
+    deps = [
+        "@ros2_common_interfaces//:cpp_std_msgs",
+        "@ros2_rclcpp//:rclcpp",
+    ],
+)

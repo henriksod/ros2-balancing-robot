@@ -1,3 +1,33 @@
 python-can==4.2.2
-pyyaml==6.0
-pyserial==3.4
+
+loguru
+wget
+
+# used by various build scripts
+pyelftools>=0.27
+
+# used by dts generation to parse binding YAMLs, also used by
+# twister to parse YAMLs, by west, zephyr_module,...
+PyYAML>=5.1
+
+# YAML validation. Used by zephyr_module.
+pykwalify
+
+# used by west_commands
+canopen
+packaging
+progress
+psutil
+pylink-square
+pyserial
+requests
+
+# for ram/rom reports
+anytree
+
+# intelhex used by mergehex.py
+intelhex
+
+# it's west
+# Keep the version identical to the minimum required in cmake/modules/west.cmake
+west>=0.14.0

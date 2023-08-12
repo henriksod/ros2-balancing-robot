@@ -1,0 +1,6 @@
+# Copyright (c) 2023, Henrik Söderlund
+
+exports_files([
+    "hello_world",
+    "custom_dts_binding",
+])

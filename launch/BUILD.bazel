@@ -1,9 +1,18 @@
+# Copyright (c) 2023, Henrik Söderlund
+
 load("@com_github_mvukov_rules_ros2//ros2:launch.bzl", "ros2_launch")
-#load("@com_github_mvukov_rules_ros2//third_party:expand_template.bzl", "expand_template")
-#load("@com_github_mvukov_rules_ros2//ros2:bag.bzl", "ros2_bag")
-#load("@com_github_mvukov_rules_ros2//ros2:topic.bzl", "ros2_topic")
-#load("@io_bazel_rules_docker//container:container.bzl", "container_push")
-#load("@io_bazel_rules_docker//lang:image.bzl", container_image = "app_layer")
+
+package(default_visibility = ["//visibility:public"])
+
+ros2_launch(
+    name = "micro_ros_agent_example",
+    data = ["//:arduino_config"],
+    launch_file = "micro_ros_agent_example.py",
+    nodes = [
+        "@com_github_micro_ros_micro_ros_agent//:micro_ros_agent",
+        "//nodes/micro_ros_listener_example:micro_ros_listener_example_task",
+    ],
+)
 
 ros2_launch(
     name = "serial_can_receiver_example",
@@ -11,7 +20,6 @@ ros2_launch(
     nodes = [
         "//nodes/serial_can_receiver:serial_can_receiver_task",
     ],
-    visibility = ["//visibility:public"],
 )
 
 ros2_launch(
@@ -21,7 +29,15 @@ ros2_launch(
         "//nodes/serial_can_receiver:serial_can_receiver_task",
         "//nodes/serial_can_logger:serial_can_logger_task",
     ],
-    visibility = ["//visibility:public"],
+)
+
+ros2_launch(
+    name = "chatter",
+    launch_file = "chatter.py",
+    nodes = [
+        "//nodes/chatter:listener",
+        "//nodes/chatter:talker",
+    ],
 )
 
 #ros2_topic(

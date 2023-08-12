@@ -1,6 +1,9 @@
+# Copyright (c) 2023, Henrik Söderlund
+
 exports_files([
     "remove_filename_spaces.patch",
     "wjwwood_serial_fix_warnings.patch",
     "cyclonedds_pic.patch",
+    "openssl_cross_compile.patch",
     "platform.txt",
 ])

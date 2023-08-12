@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# Copyright (c) 2023, Henrik Söderlund
+
 import os
 import sys
 import json
@@ -22,5 +24,5 @@ from support.commands import cli  # noqa
 
 if __name__ == "__main__":
     logger.remove()
-    logger.add(sys.stderr, colorize=True, level="INFO")
+    logger.add(sys.stderr, colorize=True, level="DEBUG")
     cli()  # Main entrypoint

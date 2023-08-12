@@ -1,3 +1,5 @@
+# Copyright (c) 2023, Henrik Söderlund
+
 import click
 import subprocess
 from loguru import logger
