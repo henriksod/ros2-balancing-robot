@@ -9,8 +9,18 @@
         mot-ustep2-gpios = <&pioc 5 0x00>;
         mot-ustep3-gpios = <&pioc 7 0x00>;
 
+        mot-step-left-gpios = <&pioc 22 0x00>;
+        mot-step-right-gpios = <&pioc 21 0x00>;
+        mot-dir-left-gpios = <&piod 4 0x00>;
+        mot-dir-right-gpios = <&piod 5 0x00>;
+
         led1-gpios = <&piob 14 0x00>;
         led2-gpios = <&pioc 12 0x00>;
         led3-gpios = <&pioc 14 0x00>;
      };
+};
+
+&tc1 {
+        clk = <3>;
+        status = "okay";
 };

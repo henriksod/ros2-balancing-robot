@@ -9,5 +9,20 @@ project(hello_world)
 
 target_include_directories(app PRIVATE include/)
 
-FILE(GLOB app_sources src/**/*.cpp)
-target_sources(app PRIVATE ${app_sources})
+FILE(GLOB app_sources src/**/**/*.cpp)
+
+option(TESTS "Run tests in test/" OFF)
+
+if(TESTS)
+    target_sources(app PRIVATE test/main.cpp)
+
+    # add here all class files for productive code
+    target_sources(app PRIVATE ${app_sources})
+
+else()
+    target_sources(app PRIVATE src/main.cpp)
+
+    # add here all class files for productive code
+    target_sources(app PRIVATE ${app_sources})
+endif()
+unset(TESTS CACHE)

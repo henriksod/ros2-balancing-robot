@@ -80,7 +80,8 @@ if __name__ == "__main__":
 
     # Build project
     run_command(
-        f"{sys.executable} -m west build -b arduino_due {os.path.realpath(APP_DIR)}", cwd=zephyr_dir
+        f"{sys.executable} -m west build -p -b arduino_due {os.path.realpath(APP_DIR)}",
+        cwd=zephyr_dir,
     )
 
     # Package output bin file
